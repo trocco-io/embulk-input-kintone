@@ -1,54 +1,33 @@
 package org.embulk.input.kintone;
 
+import java.util.HashMap;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
-import org.embulk.config.Config;
-import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
-import org.embulk.config.Task;
 import org.embulk.config.TaskReport;
 import org.embulk.config.TaskSource;
 import org.embulk.spi.Exec;
+import org.embulk.spi.PageBuilder;
 import org.embulk.spi.InputPlugin;
-import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
-import org.embulk.spi.SchemaConfig;
+import org.embulk.spi.PageOutput;
+
+import com.cybozu.kintone.client.model.record.field.FieldValue;
+import com.cybozu.kintone.client.model.record.GetRecordsResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KintoneInputPlugin
-        implements InputPlugin
-{
-    public interface PluginTask
-            extends Task
-    {
-        // configuration option 1 (required integer)
-        @Config("app_id")
-        public int getOption1();
-
-        // configuration option 2 (optional string, null is not allowed)
-        @Config("option2")
-        @ConfigDefault("\"myvalue\"")
-        public String getOption2();
-
-        // configuration option 3 (optional string, null is allowed)
-        @Config("option3")
-        @ConfigDefault("null")
-        public Optional<String> getOption3();
-
-        // if you get schema from config
-        @Config("columns")
-        public SchemaConfig getColumns();
-    }
+        implements InputPlugin {
+    private final Logger logger = LoggerFactory.getLogger(KintoneInputPlugin.class);
 
     @Override
     public ConfigDiff transaction(ConfigSource config,
-            InputPlugin.Control control)
-    {
+                                  InputPlugin.Control control) {
         PluginTask task = config.loadConfig(PluginTask.class);
 
-        Schema schema = task.getColumns().toSchema();
+        Schema schema = task.getFields().toSchema();
         int taskCount = 1;  // number of run() method calls
 
         return resume(task.dump(), schema, taskCount, control);
@@ -56,34 +35,44 @@ public class KintoneInputPlugin
 
     @Override
     public ConfigDiff resume(TaskSource taskSource,
-            Schema schema, int taskCount,
-            InputPlugin.Control control)
-    {
+                             Schema schema, int taskCount,
+                             InputPlugin.Control control) {
         control.run(taskSource, schema, taskCount);
         return Exec.newConfigDiff();
     }
 
     @Override
     public void cleanup(TaskSource taskSource,
-            Schema schema, int taskCount,
-            List<TaskReport> successTaskReports)
-    {
+                        Schema schema, int taskCount,
+                        List<TaskReport> successTaskReports) {
     }
 
     @Override
     public TaskReport run(TaskSource taskSource,
-            Schema schema, int taskIndex,
-            PageOutput output)
-    {
+                          Schema schema, int taskIndex,
+                          PageOutput output) {
         PluginTask task = taskSource.loadTask(PluginTask.class);
 
-        // Write your code here :)
-        throw new UnsupportedOperationException("KintoneInputPlugin.run method is not implemented yet");
+        try {
+            try (PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), schema, output)) {
+                KintoneClient client = new KintoneClient(task);
+                // TODO: interface should accept query?
+                GetRecordsResponse response = client.getResponse();
+                for (HashMap<String, FieldValue> record : response.getRecords()) {
+                    schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
+                    pageBuilder.addRecord();
+                }
+                pageBuilder.finish();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.fillInStackTrace());
+        }
+        return Exec.newTaskReport();
     }
 
     @Override
-    public ConfigDiff guess(ConfigSource config)
-    {
+    public ConfigDiff guess(ConfigSource config) {
         return Exec.newConfigDiff();
     }
 }
