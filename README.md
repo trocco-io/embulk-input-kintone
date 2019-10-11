@@ -25,7 +25,7 @@ embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, wh
 - **query**:  Kintone query to retrieve records. If the query is omitted, all records are retrieved. The query syntax follows [official documentation: Query Operators and Functions](https://developer.kintone.io/hc/en-us/articles/360019245194) (string, optional)
 - **basic_auth_username**:  Kintone basic auth username Please see Kintone basic auth [here](https://jp.cybozu.help/general/en/admin/list_security/list_ip_basic/basic_auth.html) (string, optional)
 - **basic_auth_password**:  Kintone basic auth password (string, optional)
-- **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (string, default: `null`)
+- **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (integer, optional)
 - **fields**
   - **name** the field code of Kintone app record will be retrieved.
   - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp)
