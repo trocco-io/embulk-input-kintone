@@ -9,13 +9,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class TestKintoneInputPlugin
-{
+public class TestKintoneInputPlugin {
     private ConfigSource config;
     private static final String BASIC_RESOURCE_PATH = "org/embulk/input/kintone/";
 
-    private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName)
-    {
+    private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName) {
         return embulk.loadYamlResource(BASIC_RESOURCE_PATH + fileName);
     }
 
@@ -25,7 +23,7 @@ public class TestKintoneInputPlugin
             .build();
 
     @Test
-    public void checkDefaultConfigValues(){
+    public void checkDefaultConfigValues() {
         config = loadYamlResource(embulk, "base.yml");
         PluginTask task = config.loadConfig(PluginTask.class);
         assertEquals("dev.cybozu.com", task.getDomain());

@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import static org.junit.Assert.*;
 
 
@@ -57,7 +58,7 @@ public class TestKintoneAccessor {
     }
 
     private HashMap<String, FieldValue> addField(HashMap<String, FieldValue> record, String code, FieldType type,
-                                                Object value) {
+                                                 Object value) {
         FieldValue newField = new FieldValue();
         newField.setType(type);
         newField.setValue(value);

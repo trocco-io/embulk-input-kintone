@@ -11,13 +11,11 @@ import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.*;
 
-public class TestKintoneClient
-{
+public class TestKintoneClient {
     private ConfigSource config;
     private static final String BASIC_RESOURCE_PATH = "org/embulk/input/kintone/";
 
-    private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName)
-    {
+    private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName) {
         return embulk.loadYamlResource(BASIC_RESOURCE_PATH + fileName);
     }
 
@@ -27,7 +25,7 @@ public class TestKintoneClient
             .build();
 
     @Test
-    public void checkClientWithUsernameAndPassword(){
+    public void checkClientWithUsernameAndPassword() {
         config = loadYamlResource(embulk, "base.yml");
         PluginTask task = config.loadConfig(PluginTask.class);
         KintoneClient client = new KintoneClient(task);
@@ -35,37 +33,37 @@ public class TestKintoneClient
     }
 
     @Test
-    public void checkThrowErrorWithoutAuthInfo(){
+    public void checkThrowErrorWithoutAuthInfo() {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("username")
                 .remove("password");
         PluginTask task = config.loadConfig(PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, ()-> new KintoneClient(task));
+        ConfigException e = assertThrows(ConfigException.class, () -> new KintoneClient(task));
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
 
     @Test
-    public void checkClientErrorLackingPassword(){
+    public void checkClientErrorLackingPassword() {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("password");
         PluginTask task = config.loadConfig(PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, ()-> new KintoneClient(task));
+        ConfigException e = assertThrows(ConfigException.class, () -> new KintoneClient(task));
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
 
     @Test
-    public void checkClientErrorLackingUsername(){
+    public void checkClientErrorLackingUsername() {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("username");
         PluginTask task = config.loadConfig(PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, ()->{
+        ConfigException e = assertThrows(ConfigException.class, () -> {
             new KintoneClient(task);
         });
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
 
     @Test
-    public void checkClientWithToken(){
+    public void checkClientWithToken() {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("username")
                 .remove("password")

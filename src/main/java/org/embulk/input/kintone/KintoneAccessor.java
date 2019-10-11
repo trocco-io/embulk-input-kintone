@@ -49,7 +49,7 @@ public class KintoneAccessor {
                         .reduce((accum, value) -> accum + this.delimiter + value)
                         .orElse("");
             case NUMBER:
-                return  String.valueOf(this.record.get(name).getValue());
+                return String.valueOf(this.record.get(name).getValue());
             default:
                 return (String) this.record.get(name).getValue();
         }
