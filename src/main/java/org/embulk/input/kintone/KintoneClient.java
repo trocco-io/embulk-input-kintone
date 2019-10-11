@@ -25,13 +25,9 @@ public class KintoneClient {
         this.kintoneAuth = new Auth();
 
         this.fields = new ArrayList<>();
-        if (task.getFields().isPresent()){
-            for (ColumnConfig c : task.getFields().get().getColumns()
-            ) {
-                fields.add(c.getName());
-            }
-        } else {
-            throw new ConfigException("Fields must be provided");
+        for (ColumnConfig c : task.getFields().getColumns()
+        ) {
+            fields.add(c.getName());
         }
         this.setAuth();
         if (task.getGuestSpaceId().isPresent()) {

@@ -3,10 +3,7 @@ package org.embulk.input.kintone;
 import java.util.HashMap;
 import java.util.List;
 
-import org.embulk.config.ConfigDiff;
-import org.embulk.config.ConfigSource;
-import org.embulk.config.TaskReport;
-import org.embulk.config.TaskSource;
+import org.embulk.config.*;
 import org.embulk.spi.Exec;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.InputPlugin;
