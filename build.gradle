@@ -83,7 +83,7 @@ Gem::Specification.new do |spec|
   spec.description   = %[Loads records from Kintone.]
   spec.email         = ["ugw.gi.world@gmail.com"]
   spec.licenses      = ["MIT"]
-  # TODO set this: spec.homepage      = "https://github.com/ugw.gi.world/embulk-input-kintone"
+  spec.homepage      = "https://github.com/trocco-io/embulk-input-kintone"
 
   spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
   spec.test_files    = spec.files.grep(%r"^(test|spec)/")
