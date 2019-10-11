@@ -9,7 +9,7 @@ embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, wh
 * **Cleanup supported**: no
 * **Guess supported**: no
 
-## Rad Map
+## Road Map
 - [ ] Guess
 - [ ] Subtable data type support
 - [ ] field name mapping
