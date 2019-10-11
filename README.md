@@ -1,4 +1,5 @@
 # Kintone input plugin for Embulk
+[![Build Status](https://travis-ci.org/giwa/embulk-input-kintone.svg?branch=master)](https://travis-ci.org/giwa/embulk-input-kintone)
 
 ## Overview
 Kintone input plugin for Embulk loads app records from Kintone.
