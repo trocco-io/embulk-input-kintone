@@ -64,7 +64,7 @@ in:
     - {name: $id, type: long}
     - {name: $revision, type: long}
     - {name: Time, type: string}
-    - {name: Created_datatime, type: long}
+    - {name: Created_datatime, type: string}
     - {name: foo, type: string}
 ```
 
