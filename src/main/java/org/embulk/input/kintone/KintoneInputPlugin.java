@@ -53,7 +53,6 @@ public class KintoneInputPlugin
         try {
             try (PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), schema, output)) {
                 KintoneClient client = new KintoneClient(task);
-                // TODO: interface should accept query?
                 GetRecordsResponse response = client.getResponse();
                 for (HashMap<String, FieldValue> record : response.getRecords()) {
                     schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
@@ -62,8 +61,8 @@ public class KintoneInputPlugin
                 pageBuilder.finish();
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.fillInStackTrace());
+            logger.error(e.getMessage());
+            throw e;
         }
         return Exec.newTaskReport();
     }

@@ -1,50 +1,42 @@
 package org.embulk.input.kintone;
 
-
-import org.embulk.config.ConfigDiff;
-import org.embulk.config.ConfigException;
 import org.embulk.config.ConfigSource;
-import org.embulk.config.TaskReport;
-import org.embulk.config.TaskSource;
-import org.embulk.spi.Column;
-import org.embulk.spi.Exec;
 import org.embulk.spi.InputPlugin;
-import org.embulk.spi.Schema;
-import org.embulk.spi.type.Types;
-import org.embulk.spi.util.Pages;
 
-import org.junit.Before;
+import org.embulk.test.TestingEmbulk;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class TestKintoneInputPlugin
 {
-    private final String kintoneDomain = "dev.cybozu.com";
     private ConfigSource config;
-    private KintoneInputPlugin plugin;
+    private static final String BASIC_RESOURCE_PATH = "org/embulk/input/kintone/";
 
-    @Before
-    public void createResources(){
-       config = config();
-       plugin = new KintoneInputPlugin();
+    private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName)
+    {
+        return embulk.loadYamlResource(BASIC_RESOURCE_PATH + fileName);
     }
+
+    @Rule
+    public TestingEmbulk embulk = TestingEmbulk.builder()
+            .registerPlugin(InputPlugin.class, "kintone", KintoneInputPlugin.class)
+            .build();
 
     @Test
-    public void checkDefaultConfigValues)(){
+    public void checkDefaultConfigValues(){
+        config = loadYamlResource(embulk, "base.yml");
         PluginTask task = config.loadConfig(PluginTask.class);
-        assertEquals("{}", task.getFields());
-    }
-
-
-    private ConfigSource config(){
-        return Exec.newConfigSource()
-                .set("domain", kintoneDomain)
-                .set("app_id", 1)
-                .set("username", "username")
-                .set("password", "password");
+        assertEquals("dev.cybozu.com", task.getDomain());
+        assertEquals(1, task.getAppId());
+        assertEquals("username", task.getUsername().get());
+        assertEquals("password", task.getPassword().get());
+        assertFalse(task.getToken().isPresent());
+        assertFalse(task.getGuestSpaceId().isPresent());
+        assertFalse(task.getBasicAuthUsername().isPresent());
+        assertFalse(task.getBasicAuthPassword().isPresent());
+        assertFalse(task.getQuery().isPresent());
+        assertNotNull(task.getFields());
     }
 }
