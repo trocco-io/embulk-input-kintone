@@ -3,10 +3,7 @@ package org.embulk.input.kintone;
 import java.util.HashMap;
 import java.util.List;
 
-import org.embulk.config.ConfigDiff;
-import org.embulk.config.ConfigSource;
-import org.embulk.config.TaskReport;
-import org.embulk.config.TaskSource;
+import org.embulk.config.*;
 import org.embulk.spi.Exec;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.InputPlugin;
@@ -56,7 +53,6 @@ public class KintoneInputPlugin
         try {
             try (PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), schema, output)) {
                 KintoneClient client = new KintoneClient(task);
-                // TODO: interface should accept query?
                 GetRecordsResponse response = client.getResponse();
                 for (HashMap<String, FieldValue> record : response.getRecords()) {
                     schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
@@ -65,8 +61,8 @@ public class KintoneInputPlugin
                 pageBuilder.finish();
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.fillInStackTrace());
+            logger.error(e.getMessage());
+            throw e;
         }
         return Exec.newTaskReport();
     }

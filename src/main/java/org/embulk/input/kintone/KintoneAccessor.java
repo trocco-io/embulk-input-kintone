@@ -26,7 +26,7 @@ public class KintoneAccessor {
             case GROUP_SELECT:
             case STATUS_ASSIGNEE:
                 ArrayList<Member> members = (ArrayList<Member>) this.record.get(name).getValue();
-                return members.stream().map(m -> m.getCode())
+                return members.stream().map(Member::getCode)
                         .reduce((accum, value) -> accum + this.delimiter + value)
                         .orElse("");
             case SUBTABLE:
@@ -45,9 +45,11 @@ public class KintoneAccessor {
                         .orElse("");
             case FILE:
                 ArrayList<FileModel> cbFileList = (ArrayList<FileModel>) this.record.get(name).getValue();
-                return cbFileList.stream().map(f -> f.getFileKey())
+                return cbFileList.stream().map(FileModel::getFileKey)
                         .reduce((accum, value) -> accum + this.delimiter + value)
                         .orElse("");
+            case NUMBER:
+                return String.valueOf(this.record.get(name).getValue());
             default:
                 return (String) this.record.get(name).getValue();
         }
