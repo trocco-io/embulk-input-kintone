@@ -14,22 +14,36 @@ import java.util.ArrayList;
 
 public class KintoneClient {
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
-    private final PluginTask task;
-    private ArrayList<String> fields;
     private Auth kintoneAuth;
     private Record kintoneRecordManager;
     private Connection con;
 
-    public KintoneClient(final PluginTask task) {
-        this.task = task;
+    public KintoneClient(){
         this.kintoneAuth = new Auth();
+    }
 
-        this.fields = new ArrayList<>();
-        for (ColumnConfig c : task.getFields().getColumns()
-        ) {
-            fields.add(c.getName());
+    public void validateAuth(final PluginTask task) throws ConfigException{
+        if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
+            return;
+        } else if (task.getToken().isPresent()) {
+            return;
+        } else {
+            throw new ConfigException("Username and password or token must be provided");
         }
-        this.setAuth();
+    }
+
+    public void connect(final PluginTask task) {
+        if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
+            this.kintoneAuth.setPasswordAuth(task.getUsername().get(), task.getPassword().get());
+        } else if (task.getToken().isPresent()) {
+            this.kintoneAuth.setApiToken(task.getToken().get());
+        }
+
+        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
+            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(),
+                    task.getBasicAuthPassword().get());
+        }
+
         if (task.getGuestSpaceId().isPresent()) {
             this.con = new Connection(task.getDomain(), this.kintoneAuth, task.getGuestSpaceId().or(-1));
         } else {
@@ -38,25 +52,16 @@ public class KintoneClient {
         this.kintoneRecordManager = new Record(con);
     }
 
-    private void setAuth() {
-        if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
-            this.kintoneAuth.setPasswordAuth(task.getUsername().get(), task.getPassword().get());
-        } else if (task.getToken().isPresent()) {
-            this.kintoneAuth.setApiToken(task.getToken().get());
-        } else {
-            throw new ConfigException("Username and password or token must be provided");
-        }
 
-        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
-            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(),
-                    task.getBasicAuthPassword().get());
+    public GetRecordsResponse getResponse(final PluginTask task) {
+        ArrayList<String> fields = new ArrayList<>();
+        for (ColumnConfig c : task.getFields().getColumns()
+        ) {
+            fields.add(c.getName());
         }
-    }
-
-    public GetRecordsResponse getResponse() {
         try {
             return kintoneRecordManager.getAllRecordsByQuery(
-                    this.task.getAppId(), this.task.getQuery().or(""), this.fields);
+                    task.getAppId(), task.getQuery().or(""), fields);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

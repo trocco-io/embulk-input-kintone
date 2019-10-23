@@ -52,8 +52,10 @@ public class KintoneInputPlugin
 
         try {
             try (PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), schema, output)) {
-                KintoneClient client = new KintoneClient(task);
-                GetRecordsResponse response = client.getResponse();
+                KintoneClient client = new KintoneClient();
+                client.validateAuth(task);
+                client.connect(task);
+                GetRecordsResponse response = client.getResponse(task);
                 for (HashMap<String, FieldValue> record : response.getRecords()) {
                     schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
                     pageBuilder.addRecord();
