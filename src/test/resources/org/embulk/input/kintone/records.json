@@ -1,0 +1,149 @@
+{
+  "records": [
+    {
+      "bar": {
+        "type": "NUMBER",
+        "value": "3"
+      },
+      "レコード番号": {
+        "type": "RECORD_NUMBER",
+        "value": "3"
+      },
+      "更新者": {
+        "type": "MODIFIER",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "作成者": {
+        "type": "CREATOR",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "foo": {
+        "type": "SINGLE_LINE_TEXT",
+        "value": "baz"
+      },
+      "baz": {
+        "type": "NUMBER",
+        "value": "3.3333"
+      },
+      "$revision": {
+        "type": "__REVISION__",
+        "value": "1"
+      },
+      "更新日時": {
+        "type": "UPDATED_TIME",
+        "value": "2019-10-22T10:06:00Z"
+      },
+      "作成日時": {
+        "type": "CREATED_TIME",
+        "value": "2019-10-22T10:06:00Z"
+      },
+      "$id": {
+        "type": "__ID__",
+        "value": "3"
+      }
+    },
+    {
+      "bar": {
+        "type": "NUMBER",
+        "value": "2"
+      },
+      "レコード番号": {
+        "type": "RECORD_NUMBER",
+        "value": "2"
+      },
+      "更新者": {
+        "type": "MODIFIER",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "作成者": {
+        "type": "CREATOR",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "foo": {
+        "type": "SINGLE_LINE_TEXT",
+        "value": "bar"
+      },
+      "baz": {
+        "type": "NUMBER",
+        "value": "2.222"
+      },
+      "$revision": {
+        "type": "__REVISION__",
+        "value": "3"
+      },
+      "更新日時": {
+        "type": "UPDATED_TIME",
+        "value": "2019-10-22T10:06:00Z"
+      },
+      "作成日時": {
+        "type": "CREATED_TIME",
+        "value": "2019-10-22T10:05:00Z"
+      },
+      "$id": {
+        "type": "__ID__",
+        "value": "2"
+      }
+    },
+    {
+      "bar": {
+        "type": "NUMBER",
+        "value": "1"
+      },
+      "レコード番号": {
+        "type": "RECORD_NUMBER",
+        "value": "1"
+      },
+      "更新者": {
+        "type": "MODIFIER",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "作成者": {
+        "type": "CREATOR",
+        "value": {
+          "code": "giwa",
+          "name": "giwa"
+        }
+      },
+      "foo": {
+        "type": "SINGLE_LINE_TEXT",
+        "value": "foo"
+      },
+      "baz": {
+        "type": "NUMBER",
+        "value": "1.1"
+      },
+      "$revision": {
+        "type": "__REVISION__",
+        "value": "1"
+      },
+      "更新日時": {
+        "type": "UPDATED_TIME",
+        "value": "2019-10-22T10:05:00Z"
+      },
+      "作成日時": {
+        "type": "CREATED_TIME",
+        "value": "2019-10-22T10:05:00Z"
+      },
+      "$id": {
+        "type": "__ID__",
+        "value": "1"
+      }
+    }
+  ],
+  "totalCount": "3"
+}

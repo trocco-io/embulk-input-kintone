@@ -7,7 +7,6 @@ import org.embulk.spi.InputPlugin;
 import org.embulk.test.TestingEmbulk;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.*;
 
@@ -28,8 +27,9 @@ public class TestKintoneClient {
     public void checkClientWithUsernameAndPassword() {
         config = loadYamlResource(embulk, "base.yml");
         PluginTask task = config.loadConfig(PluginTask.class);
-        KintoneClient client = new KintoneClient(task);
+        KintoneClient client = new KintoneClient();
         assertNotNull(client);
+        client.validateCredentials(task);
     }
 
     @Test
@@ -38,7 +38,8 @@ public class TestKintoneClient {
         config.remove("username")
                 .remove("password");
         PluginTask task = config.loadConfig(PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, () -> new KintoneClient(task));
+        KintoneClient client = new KintoneClient();
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateCredentials(task));
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
 
@@ -47,7 +48,8 @@ public class TestKintoneClient {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("password");
         PluginTask task = config.loadConfig(PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, () -> new KintoneClient(task));
+        KintoneClient client = new KintoneClient();
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateCredentials(task));
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
 
@@ -56,8 +58,9 @@ public class TestKintoneClient {
         config = loadYamlResource(embulk, "base.yml");
         config.remove("username");
         PluginTask task = config.loadConfig(PluginTask.class);
+        KintoneClient client = new KintoneClient();
         ConfigException e = assertThrows(ConfigException.class, () -> {
-            new KintoneClient(task);
+            client.validateCredentials(task);
         });
         assertEquals("Username and password or token must be provided", e.getMessage());
     }
@@ -69,7 +72,8 @@ public class TestKintoneClient {
                 .remove("password")
                 .set("token", "token");
         PluginTask task = config.loadConfig(PluginTask.class);
-        KintoneClient client = new KintoneClient(task);
+        KintoneClient client = new KintoneClient();
         assertNotNull(client);
+        client.validateCredentials(task);
     }
 }
