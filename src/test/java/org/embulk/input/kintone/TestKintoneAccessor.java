@@ -24,46 +24,37 @@ public class TestKintoneAccessor {
     public HashMap<String, FieldValue> createTestRecord() {
         HashMap<String, FieldValue> testRecord = new HashMap<>();
 
-        testRecord = addField(testRecord, "文字列__1行", FieldType.SINGLE_LINE_TEXT, "test single text");
-        testRecord = addField(testRecord, "数値", FieldType.NUMBER, this.uniqueKey);
+        testRecord = TestHelper.addField(testRecord, "文字列__1行", FieldType.SINGLE_LINE_TEXT, "test single text");
+        testRecord = TestHelper.addField(testRecord, "数値", FieldType.NUMBER, this.uniqueKey);
         this.uniqueKey += 1;
-        testRecord = addField(testRecord, "文字列__複数行", FieldType.MULTI_LINE_TEXT, "test multi text");
-        testRecord = addField(testRecord, "リッチエディター", FieldType.RICH_TEXT, "<div>test rich text<br /></div>");
+        testRecord = TestHelper.addField(testRecord, "文字列__複数行", FieldType.MULTI_LINE_TEXT, "test multi text");
+        testRecord = TestHelper.addField(testRecord, "リッチエディター", FieldType.RICH_TEXT, "<div>test rich text<br /></div>");
 
         ArrayList<String> selectedItemList = new ArrayList<>();
         selectedItemList.add("sample1");
         selectedItemList.add("sample2");
-        testRecord = addField(testRecord, "チェックボックス", FieldType.CHECK_BOX, selectedItemList);
-        testRecord = addField(testRecord, "ラジオボタン", FieldType.RADIO_BUTTON, "sample2");
-        testRecord = addField(testRecord, "ドロップダウン", FieldType.DROP_DOWN, "sample3");
-        testRecord = addField(testRecord, "複数選択", FieldType.MULTI_SELECT, selectedItemList);
-        testRecord = addField(testRecord, "リンク", FieldType.LINK, "http://cybozu.co.jp/");
-        testRecord = addField(testRecord, "日付", FieldType.DATE, "2018-01-01");
-        testRecord = addField(testRecord, "時刻", FieldType.TIME, "12:34");
-        testRecord = addField(testRecord, "日時", FieldType.DATETIME, "2018-01-02T02:30:00Z");
+        testRecord = TestHelper.addField(testRecord, "チェックボックス", FieldType.CHECK_BOX, selectedItemList);
+        testRecord = TestHelper.addField(testRecord, "ラジオボタン", FieldType.RADIO_BUTTON, "sample2");
+        testRecord = TestHelper.addField(testRecord, "ドロップダウン", FieldType.DROP_DOWN, "sample3");
+        testRecord = TestHelper.addField(testRecord, "複数選択", FieldType.MULTI_SELECT, selectedItemList);
+        testRecord = TestHelper.addField(testRecord, "リンク", FieldType.LINK, "http://cybozu.co.jp/");
+        testRecord = TestHelper.addField(testRecord, "日付", FieldType.DATE, "2018-01-01");
+        testRecord = TestHelper.addField(testRecord, "時刻", FieldType.TIME, "12:34");
+        testRecord = TestHelper.addField(testRecord, "日時", FieldType.DATETIME, "2018-01-02T02:30:00Z");
 
         ArrayList<Member> userList = new ArrayList<>();
         userList.add(testman1);
         userList.add(testman2);
-        addField(testRecord, "ユーザー選択", FieldType.USER_SELECT, userList);
+        TestHelper.addField(testRecord, "ユーザー選択", FieldType.USER_SELECT, userList);
         ArrayList<Member> groupList = new ArrayList<>();
         groupList.add(testgroup1);
         groupList.add(testgroup2);
-        addField(testRecord, "グループ選択", FieldType.GROUP_SELECT, groupList);
+        TestHelper.addField(testRecord, "グループ選択", FieldType.GROUP_SELECT, groupList);
         ArrayList<Member> orgList = new ArrayList<>();
         orgList.add(testorg1);
         orgList.add(testorg2);
-        addField(testRecord, "組織選択", FieldType.ORGANIZATION_SELECT, orgList);
+        TestHelper.addField(testRecord, "組織選択", FieldType.ORGANIZATION_SELECT, orgList);
         return testRecord;
-    }
-
-    private HashMap<String, FieldValue> addField(HashMap<String, FieldValue> record, String code, FieldType type,
-                                                 Object value) {
-        FieldValue newField = new FieldValue();
-        newField.setType(type);
-        newField.setValue(value);
-        record.put(code, newField);
-        return record;
     }
 
     @Test
