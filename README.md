@@ -30,7 +30,7 @@ embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, wh
 - **fields** (required)
   - **name** the field code of Kintone app record will be retrieved.
   - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp)
-  - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`. The format must be provided by the user.
+  - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`.
 
 Kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
 
@@ -67,7 +67,7 @@ in:
     - {name: Time, type: string}
     - {name: Created_datatime, type: string}
     - {name: foo, type: string}
-    - {name: timestamp, type: timestamp, format: '%Y-%m-%dT%H:%M:%S%z'}
+    - {name: datetime, type: timestamp, format: '%Y-%m-%dT%H:%M:%S%z'}
 ```
 
 ## Build

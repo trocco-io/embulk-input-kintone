@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
 
 public class KintoneInputColumnVisitor implements ColumnVisitor {
-    private static final String DEFAULT_TIMESTAMP_PATTERN = "%Y-%m-%dT%H:%M:%S.%L%z";
+    private static final String DEFAULT_TIMESTAMP_PATTERN = "%Y-%m-%dT%H:%M:%S%z";
     private final Logger logger = LoggerFactory.getLogger(KintoneInputColumnVisitor.class);
 
     private final PageBuilder pageBuilder;

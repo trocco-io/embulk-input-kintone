@@ -120,14 +120,14 @@ public class TestKintoneInputPlugin {
         record1 = TestHelper.addField(record1, "bar", FieldType.NUMBER, 1);
         record1 = TestHelper.addField(record1, "baz", FieldType.NUMBER, 1.111);
         record1 = TestHelper.addField(record1, "date", FieldType.DATE, "2020-01-01");
-        record1 = TestHelper.addField(record1, "timestamp", FieldType.DATE, "2020-01-01T00:00:00Z");
+        record1 = TestHelper.addField(record1, "datetime", FieldType.DATE, "2020-01-01T00:00:00Z");
         records.add(record1);
 
         record2 = TestHelper.addField(record2, "foo", FieldType.SINGLE_LINE_TEXT, "test single text2");
         record2 = TestHelper.addField(record2, "bar", FieldType.NUMBER, 2);
         record2 = TestHelper.addField(record2, "baz", FieldType.NUMBER, 2.222);
         record2 = TestHelper.addField(record2, "date", FieldType.DATE, "2020-02-02");
-        record2 = TestHelper.addField(record2, "timestamp", FieldType.DATE, "2020-02-02T00:00:00Z");
+        record2 = TestHelper.addField(record2, "datetime", FieldType.DATE, "2020-02-02T00:00:00Z");
         records.add(record2);
 
         response.setRecords(records);
