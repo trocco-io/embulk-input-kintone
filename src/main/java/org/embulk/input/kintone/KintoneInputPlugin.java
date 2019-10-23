@@ -3,6 +3,7 @@ package org.embulk.input.kintone;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.embulk.config.*;
 import org.embulk.spi.Exec;
 import org.embulk.spi.PageBuilder;
@@ -51,8 +52,8 @@ public class KintoneInputPlugin
         PluginTask task = taskSource.loadTask(PluginTask.class);
 
         try {
-            try (PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), schema, output)) {
-                KintoneClient client = new KintoneClient();
+            try (PageBuilder pageBuilder = getPageBuilder(schema, output)) {
+                KintoneClient client = getKintoneClient();
                 client.validateAuth(task);
                 client.connect(task);
                 GetRecordsResponse response = client.getResponse(task);
@@ -73,4 +74,16 @@ public class KintoneInputPlugin
     public ConfigDiff guess(ConfigSource config) {
         return Exec.newConfigDiff();
     }
+
+    @VisibleForTesting
+    protected PageBuilder getPageBuilder(final Schema schema, final PageOutput output)
+    {
+        return new PageBuilder(Exec.getBufferAllocator(), schema, output);
+    }
+
+    @VisibleForTesting
+    protected KintoneClient getKintoneClient(){
+        return new KintoneClient();
+    }
+
 }
