@@ -67,7 +67,7 @@ in:
     - {name: Time, type: string}
     - {name: Created_datatime, type: string}
     - {name: foo, type: string}
-    - {name: timestamp, type: timestamp, format: '%Y-%m-%dT%H:%M:%S%z'}
+    - {name: datetime, type: timestamp, format: '%Y-%m-%dT%H:%M:%S%z'}
 ```
 
 ## Build

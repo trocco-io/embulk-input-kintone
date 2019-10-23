@@ -8,4 +8,4 @@ fields:
   - {name: bar, type: long}
   - {name: baz, type: double}
   - {name: date, type: timestamp, format: '%Y-%m-%d'}
-  - {name: timestamp, type: timestamp}
+  - {name: datetime, type: timestamp}
