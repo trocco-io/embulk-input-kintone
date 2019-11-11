@@ -60,7 +60,7 @@ in:
   username: user
   password: password
   app_id: 1
-  query: Time > 10:00 and Time < 19:00 and Created_datatime = TODAY() order by $id asc limit 10
+  query: Time > 10:00 and Time < 19:00 and Created_datatime = TODAY() order by $id asc
   fields:
     - {name: $id, type: long}
     - {name: $revision, type: long}
