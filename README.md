@@ -1,9 +1,11 @@
-# Kintone input plugin for Embulk
+# kintone input plugin for Embulk
 [![Build Status](https://travis-ci.org/trocco-io/embulk-input-kintone.svg?branch=master)](https://travis-ci.org/trocco-io/embulk-input-kintone)
 
 ## Overview
-Kintone input plugin for Embulk loads app records from Kintone.
+kintone input plugin for Embulk loads app records from kintone.
 embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, which requires java 8
+
+This plugin
 
 * **Plugin type**: input
 * **Resume supported**: no
