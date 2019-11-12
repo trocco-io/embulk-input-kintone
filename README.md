@@ -1,9 +1,12 @@
-# Kintone input plugin for Embulk
+# kintone input plugin for Embulk
 [![Build Status](https://travis-ci.org/trocco-io/embulk-input-kintone.svg?branch=master)](https://travis-ci.org/trocco-io/embulk-input-kintone)
 
 ## Overview
-Kintone input plugin for Embulk loads app records from Kintone.
+kintone input plugin for Embulk loads app records from kintone.
 embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, which requires java 8
+
+This plugin uses [cursor API](https://developer.kintone.io/hc/en-us/articles/360000280322). See the limitation on this page.
+e.g. limit, offset are not supported.
 
 * **Plugin type**: input
 * **Resume supported**: no
@@ -32,7 +35,7 @@ embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, wh
   - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp)
   - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`.
 
-Kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
+kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
 
 ## Example
 

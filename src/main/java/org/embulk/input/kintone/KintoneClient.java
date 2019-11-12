@@ -2,11 +2,12 @@ package org.embulk.input.kintone;
 
 import com.cybozu.kintone.client.authentication.Auth;
 import com.cybozu.kintone.client.connection.Connection;
+import com.cybozu.kintone.client.exception.KintoneAPIException;
+import com.cybozu.kintone.client.model.cursor.CreateRecordCursorResponse;
 import com.cybozu.kintone.client.model.record.GetRecordsResponse;
-import com.cybozu.kintone.client.module.record.Record;
+import com.cybozu.kintone.client.module.recordCursor.RecordCursor;
 import org.embulk.config.ConfigException;
-import org.embulk.spi.*;
-
+import org.embulk.spi.ColumnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +15,11 @@ import java.util.ArrayList;
 
 public class KintoneClient {
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
+    private static final int FETCH_SIZE = 500;
     private Auth kintoneAuth;
-    private Record kintoneRecordManager;
+    private RecordCursor kintoneRecordManager;
     private Connection con;
+    private CreateRecordCursorResponse cursor;
 
     public KintoneClient(){
         this.kintoneAuth = new Auth();
@@ -49,7 +52,7 @@ public class KintoneClient {
         } else {
             this.con = new Connection(task.getDomain(), this.kintoneAuth);
         }
-        this.kintoneRecordManager = new Record(con);
+        this.kintoneRecordManager = new RecordCursor(con);
     }
 
 
@@ -60,11 +63,22 @@ public class KintoneClient {
             fields.add(c.getName());
         }
         try {
-            return kintoneRecordManager.getAllRecordsByQuery(
-                    task.getAppId(), task.getQuery().or(""), fields);
-        } catch (Exception e) {
+            this.cursor = this.kintoneRecordManager.createCursor(task.getAppId(),
+                    fields, task.getQuery().or(""), FETCH_SIZE);
+            return this.kintoneRecordManager.getAllRecords(cursor.getId());
+        }catch (KintoneAPIException e){
+            if (this.cursor != null) {
+                this.deleteCursor();
+            }
             throw new RuntimeException(e);
         }
     }
 
+    public void deleteCursor() {
+        try {
+            this.kintoneRecordManager.deleteCursor(this.cursor.getId());
+        }catch (KintoneAPIException e){
+            this.logger.error(e.toString());
+        }
+    }
 }
