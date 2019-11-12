@@ -1,20 +1,17 @@
 package org.embulk.input.kintone;
 
-import java.util.HashMap;
-import java.util.List;
-
-import com.google.common.annotations.VisibleForTesting;
-import org.embulk.config.*;
-import org.embulk.spi.Exec;
-import org.embulk.spi.PageBuilder;
-import org.embulk.spi.InputPlugin;
-import org.embulk.spi.Schema;
-import org.embulk.spi.PageOutput;
-
-import com.cybozu.kintone.client.model.record.field.FieldValue;
 import com.cybozu.kintone.client.model.record.GetRecordsResponse;
+import com.cybozu.kintone.client.model.record.field.FieldValue;
+import org.embulk.config.ConfigDiff;
+import org.embulk.config.ConfigSource;
+import org.embulk.config.TaskReport;
+import org.embulk.config.TaskSource;
+import org.embulk.spi.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class KintoneInputPlugin
         implements InputPlugin {
@@ -62,6 +59,7 @@ public class KintoneInputPlugin
                     pageBuilder.addRecord();
                 }
                 pageBuilder.finish();
+                client.deleteCursor();
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
