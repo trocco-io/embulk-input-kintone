@@ -15,12 +15,7 @@ import java.util.ArrayList;
 
 public class KintoneClient {
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
-<<<<<<< HEAD
-=======
     private static final int FETCH_SIZE = 500;
-    private final PluginTask task;
-    private ArrayList<String> fields;
->>>>>>> use cursor to fetch records
     private Auth kintoneAuth;
     private RecordCursor kintoneRecordManager;
     private Connection con;
@@ -38,7 +33,6 @@ public class KintoneClient {
         } else {
             throw new ConfigException("Username and password or token must be provided");
         }
-        this.kintoneRecordManager = new RecordCursor(con);
     }
 
     public void connect(final PluginTask task) {
@@ -58,7 +52,7 @@ public class KintoneClient {
         } else {
             this.con = new Connection(task.getDomain(), this.kintoneAuth);
         }
-        this.kintoneRecordManager = new Record(con);
+        this.kintoneRecordManager = new RecordCursor(con);
     }
 
 
@@ -69,12 +63,11 @@ public class KintoneClient {
             fields.add(c.getName());
         }
         try {
-            this.cursor = this.kintoneRecordManager.createCursor(this.task.getAppId(),
-                    this.fields, this.task.getQuery().or(""), FETCH_SIZE);
+            this.cursor = this.kintoneRecordManager.createCursor(task.getAppId(),
+                    fields, task.getQuery().or(""), FETCH_SIZE);
             return this.kintoneRecordManager.getAllRecords(cursor.getId());
         }catch (KintoneAPIException e){
-            this.logger.error(e.toString());
-            if (!this.cursor.getId().isEmpty()) {
+            if (this.cursor != null) {
                 this.deleteCursor();
             }
             throw new RuntimeException(e);

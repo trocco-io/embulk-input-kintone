@@ -2,6 +2,7 @@ package org.embulk.input.kintone;
 
 import com.cybozu.kintone.client.model.record.GetRecordsResponse;
 import com.cybozu.kintone.client.model.record.field.FieldValue;
+import com.google.common.annotations.VisibleForTesting;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.TaskReport;
