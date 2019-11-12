@@ -5,7 +5,8 @@
 kintone input plugin for Embulk loads app records from kintone.
 embulk 0.9 is only supported due to the dependency of kintone-java-sdk 0.4.0, which requires java 8
 
-This plugin
+This plugin uses [cursor API](https://developer.kintone.io/hc/en-us/articles/360000280322). See the limitation on this page.
+e.g. limit, offset are not supported.
 
 * **Plugin type**: input
 * **Resume supported**: no
