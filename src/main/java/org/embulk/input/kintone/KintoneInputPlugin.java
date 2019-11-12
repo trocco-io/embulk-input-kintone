@@ -59,7 +59,6 @@ public class KintoneInputPlugin
                     pageBuilder.addRecord();
                 }
                 pageBuilder.finish();
-                client.deleteCursor();
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
