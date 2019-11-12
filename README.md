@@ -34,7 +34,7 @@ This plugin
   - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp)
   - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`.
 
-Kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
+kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
 
 ## Example
 

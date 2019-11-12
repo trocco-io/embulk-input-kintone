@@ -74,6 +74,7 @@ public class KintoneClient {
             return this.kintoneRecordManager.getAllRecords(cursor.getId());
         }catch (KintoneAPIException e){
             this.logger.error(e.toString());
+            this.deleteCursor();
             throw new RuntimeException(e);
         }
     }
@@ -83,7 +84,6 @@ public class KintoneClient {
             this.kintoneRecordManager.deleteCursor(this.cursor.getId());
         }catch (KintoneAPIException e){
             this.logger.error(e.toString());
-            throw new RuntimeException(e);
         }
     }
 }
