@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.cybozu.kintone.client.model.record.field.FieldValue;
 import com.cybozu.kintone.client.model.member.Member;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class KintoneAccessor {
     private final Logger logger = LoggerFactory.getLogger(KintoneAccessor.class);
+    private final Gson gson = new Gson();
 
     private final HashMap<String, FieldValue> record;
     private final String delimiter = "\n";
@@ -30,8 +32,8 @@ public class KintoneAccessor {
                         .reduce((accum, value) -> accum + this.delimiter + value)
                         .orElse("");
             case SUBTABLE:
-                // TODO: support sub table
-                return "";
+                Object subTableValueItem = this.record.get(name).getValue();
+                return gson.toJson(subTableValueItem);
             case CREATOR:
             case MODIFIER:
                 Member m = (Member) this.record.get(name).getValue();

@@ -15,7 +15,6 @@ e.g. limit, offset are not supported.
 
 ## Road Map
 - [ ] Guess
-- [ ] Subtable data type support
 - [ ] field name mapping
 - [ ] handle certification fot authentication
 
@@ -32,7 +31,7 @@ e.g. limit, offset are not supported.
 - **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (integer, optional)
 - **fields** (required)
   - **name** the field code of Kintone app record will be retrieved.
-  - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp)
+  - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp) Kintone `SUBTABLE` type is loaded as json text.
   - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`.
 
 kintone API has the limitation, therefore this plugin also faces it. See [official documentation](https://developer.kintone.io/hc/en-us/articles/212495188/)
