@@ -4,6 +4,7 @@ import com.cybozu.kintone.client.authentication.Auth;
 import com.cybozu.kintone.client.connection.Connection;
 import com.cybozu.kintone.client.exception.KintoneAPIException;
 import com.cybozu.kintone.client.model.cursor.CreateRecordCursorResponse;
+import com.cybozu.kintone.client.model.cursor.GetRecordCursorResponse;
 import com.cybozu.kintone.client.model.record.GetRecordsResponse;
 import com.cybozu.kintone.client.module.recordCursor.RecordCursor;
 import org.embulk.config.ConfigException;
@@ -19,7 +20,6 @@ public class KintoneClient {
     private Auth kintoneAuth;
     private RecordCursor kintoneRecordManager;
     private Connection con;
-    private CreateRecordCursorResponse cursor;
 
     public KintoneClient(){
         this.kintoneAuth = new Auth();
@@ -57,26 +57,41 @@ public class KintoneClient {
 
 
     public GetRecordsResponse getResponse(final PluginTask task) {
+        CreateRecordCursorResponse cursor = this.createCursor(task);
+        try {
+            return this.kintoneRecordManager.getAllRecords(cursor.getId());
+        }catch (KintoneAPIException e){
+            this.deleteCursor(cursor);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public GetRecordCursorResponse getRecordsByCursor(CreateRecordCursorResponse cursor){
+        try {
+            return this.kintoneRecordManager.getRecords(cursor.getId());
+        }catch (KintoneAPIException e){
+            this.deleteCursor(cursor);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CreateRecordCursorResponse createCursor(final PluginTask task){
         ArrayList<String> fields = new ArrayList<>();
         for (ColumnConfig c : task.getFields().getColumns()
         ) {
             fields.add(c.getName());
         }
-        try {
-            this.cursor = this.kintoneRecordManager.createCursor(task.getAppId(),
-                    fields, task.getQuery().or(""), FETCH_SIZE);
-            return this.kintoneRecordManager.getAllRecords(cursor.getId());
-        }catch (KintoneAPIException e){
-            if (this.cursor != null) {
-                this.deleteCursor();
-            }
+
+        try{
+            return this.kintoneRecordManager.createCursor(task.getAppId(),  fields, task.getQuery().or(""), FETCH_SIZE);
+        }catch (KintoneAPIException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void deleteCursor() {
+    public void deleteCursor(CreateRecordCursorResponse cursor) {
         try {
-            this.kintoneRecordManager.deleteCursor(this.cursor.getId());
+            this.kintoneRecordManager.deleteCursor(cursor.getId());
         }catch (KintoneAPIException e){
             this.logger.error(e.toString());
         }
