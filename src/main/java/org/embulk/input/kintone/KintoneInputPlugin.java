@@ -1,6 +1,7 @@
 package org.embulk.input.kintone;
 
-import com.cybozu.kintone.client.model.record.GetRecordsResponse;
+import com.cybozu.kintone.client.model.cursor.CreateRecordCursorResponse;
+import com.cybozu.kintone.client.model.cursor.GetRecordCursorResponse;
 import com.cybozu.kintone.client.model.record.field.FieldValue;
 import com.google.common.annotations.VisibleForTesting;
 import org.embulk.config.ConfigDiff;
@@ -54,11 +55,19 @@ public class KintoneInputPlugin
                 KintoneClient client = getKintoneClient();
                 client.validateAuth(task);
                 client.connect(task);
-                GetRecordsResponse response = client.getResponse(task);
-                for (HashMap<String, FieldValue> record : response.getRecords()) {
-                    schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
-                    pageBuilder.addRecord();
+
+                CreateRecordCursorResponse cursor = client.createCursor(task);
+                GetRecordCursorResponse cursorResponse = client.getRecordsByCursor(cursor);
+
+                while (cursorResponse.getNext()){
+                    for (HashMap<String, FieldValue> record : cursorResponse.getRecords()) {
+                        schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
+                        pageBuilder.addRecord();
+                    }
+                    pageBuilder.flush();
+                    cursorResponse = client.getRecordsByCursor(cursor);
                 }
+
                 pageBuilder.finish();
             }
         } catch (Exception e) {
