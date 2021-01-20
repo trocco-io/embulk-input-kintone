@@ -57,17 +57,17 @@ public class KintoneInputPlugin
                 client.connect(task);
 
                 CreateRecordCursorResponse cursor = client.createCursor(task);
-                GetRecordCursorResponse cursorResponse = client.getRecordsByCursor(cursor);
+                GetRecordCursorResponse cursorResponse = new GetRecordCursorResponse();
+                cursorResponse.setNext(true);
 
-                do {
+                while (cursorResponse.getNext()) {
+                    cursorResponse = client.getRecordsByCursor(cursor);
                     for (HashMap<String, FieldValue> record : cursorResponse.getRecords()) {
                         schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
                         pageBuilder.addRecord();
                     }
                     pageBuilder.flush();
-                    cursorResponse = client.getRecordsByCursor(cursor);
-
-                } while (cursorResponse.getNext());
+                }
 
                 pageBuilder.finish();
             }
