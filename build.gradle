@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "checkstyle"
 }
-import com.github.jrubygradle.JRubyExec
+import com.github.jrubygradle.JRubyExec // TODO: weida revert here
 repositories {
     mavenCentral()
     jcenter()
@@ -21,7 +21,8 @@ targetCompatibility = 1.8
 dependencies {
     compile  "org.embulk:embulk-core:0.9.12"
     provided "org.embulk:embulk-core:0.9.12"
-    compile group: 'com.cybozu.kintone', name: 'kintone-sdk', version: '0.4.0'
+//    compile group: 'com.cybozu.kintone', name: 'kintone-sdk', version: '0.4.0'
+    compile "com.kintone:kintone-java-client:1.2.0"
 
     testCompile "junit:junit:4.+"
     testCompile 'org.embulk:embulk-standards:0.9.12'

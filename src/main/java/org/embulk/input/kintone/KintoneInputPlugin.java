@@ -1,9 +1,13 @@
 package org.embulk.input.kintone;
 
-import com.cybozu.kintone.client.model.cursor.CreateRecordCursorResponse;
-import com.cybozu.kintone.client.model.cursor.GetRecordCursorResponse;
-import com.cybozu.kintone.client.model.record.field.FieldValue;
+import com.kintone.client.api.record.CreateCursorResponseBody;
+import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
+//import com.kintone.kintone.client.model.cursor.CreateRecordCursorResponse;
+//import com.kintone.kintone.client.model.cursor.GetRecordCursorResponse;
+//import com.kintone.kintone.client.model.record.field.FieldValue; TODO: check here
+import com.kintone.client.model.record.FieldValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.kintone.client.model.record.Record;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.TaskReport;
@@ -52,18 +56,21 @@ public class KintoneInputPlugin
 
         try {
             try (PageBuilder pageBuilder = getPageBuilder(schema, output)) {
-                KintoneClient client = getKintoneClient();
+                KintoneClient client = getKintoneClient(task);
                 client.validateAuth(task);
                 client.connect(task);
 
-                CreateRecordCursorResponse cursor = client.createCursor(task);
-                GetRecordCursorResponse cursorResponse = new GetRecordCursorResponse();
-                cursorResponse.setNext(true);
+//                CreateRecordCursorResponse cursor = client.createCursor(task);
+                CreateCursorResponseBody cursor = client.createCursor(task);
+                GetRecordsByCursorResponseBody cursorResponse = new GetRecordsByCursorResponseBody(true, null);
+//                cursorResponse.setNext(true);
 
-                while (cursorResponse.getNext()) {
-                    cursorResponse = client.getRecordsByCursor(cursor);
-                    for (HashMap<String, FieldValue> record : cursorResponse.getRecords()) {
-                        schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
+//                while (cursorResponse.getNext()) {
+                while (cursorResponse.isNext()) {
+                    cursorResponse = client.getRecordsByCursor(cursor.getId());
+                    for (Record record : cursorResponse.getRecords()) {
+                        schema.visitColumns(new KintoneInputColumnVisitor(record, pageBuilder, task));
+                        record.
                         pageBuilder.addRecord();
                     }
                     pageBuilder.flush();
@@ -90,8 +97,8 @@ public class KintoneInputPlugin
     }
 
     @VisibleForTesting
-    protected KintoneClient getKintoneClient(){
-        return new KintoneClient();
+    protected KintoneClient getKintoneClient(final PluginTask task){
+        return new KintoneClient(task);
     }
 
 }

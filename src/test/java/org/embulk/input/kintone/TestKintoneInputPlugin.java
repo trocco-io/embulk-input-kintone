@@ -4,6 +4,7 @@ import com.cybozu.kintone.client.model.app.form.FieldType;
 import com.cybozu.kintone.client.model.record.GetRecordsResponse;
 import com.cybozu.kintone.client.model.record.field.FieldValue;
 
+import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import org.embulk.EmbulkTestRuntime;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
@@ -63,7 +64,8 @@ public class TestKintoneInputPlugin {
         config = loadYamlResource(embulk, "base.yml");
         PluginTask task = config.loadConfig(PluginTask.class);
         Schema outputSchema =  task.getFields().toSchema();
-        GetRecordsResponse response = createSampleData();
+//        GetRecordsResponse response = createSampleData(); // TODO: weida delete here
+        GetRecordsByCursorResponseBody response = createSampleData();
         when(kintoneClient.getResponse(any(PluginTask.class))).thenReturn(response);
 
         ConfigDiff configDiff = kintoneInputPlugin.transaction(config, new Control());

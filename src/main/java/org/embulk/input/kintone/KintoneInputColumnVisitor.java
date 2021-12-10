@@ -3,6 +3,7 @@ package org.embulk.input.kintone;
 import java.util.List;
 import java.util.Objects;
 
+import com.kintone.client.model.record.Record;
 import org.embulk.spi.json.JsonParser;
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnConfig;
@@ -21,10 +22,12 @@ public class KintoneInputColumnVisitor implements ColumnVisitor {
 
     private final PageBuilder pageBuilder;
     private final PluginTask pluginTask;
-    private final KintoneAccessor accessor;
+//    private final KintoneAccessor accessor;
+    private final Record record;
 
-    public KintoneInputColumnVisitor(final KintoneAccessor accessor, final PageBuilder pageBuilder, final PluginTask pluginTask) {
-        this.accessor = accessor;
+    public KintoneInputColumnVisitor(final Record record, final PageBuilder pageBuilder, final PluginTask pluginTask) {
+//        this.accessor = accessor;
+        this.record = record;
         this.pageBuilder = pageBuilder;
         this.pluginTask = pluginTask;
     }
