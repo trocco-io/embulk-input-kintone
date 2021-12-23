@@ -29,9 +29,7 @@ public class KintoneClient {
     private RecordClient recordClient;
 //    private Connection con; // TODO: weida delete here
 
-    public KintoneClient(final PluginTask task) throws ConfigException {
-        validateAuth(task);
-    }
+    public KintoneClient(final PluginTask task) throws ConfigException { }
 
     public void validateAuth(final PluginTask task) throws ConfigException {
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
@@ -44,6 +42,7 @@ public class KintoneClient {
     }
 
     public void connect(final PluginTask task) {
+        System.out.println(String.format("https://%s", task.getDomain()));
         KintoneClientBuilder builder = KintoneClientBuilder.create(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
 //            this.kintoneAuth.setPasswordAuth(task.getUsername().get(), task.getPassword().get()); // TODO: weida delete here
@@ -53,15 +52,16 @@ public class KintoneClient {
             builder.authByApiToken(task.getToken().get());
         }
 
-        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
-//            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(), // TODO: weida delete here
-//                    task.getBasicAuthPassword().get());
-            builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
-        }
-
-        if (task.getGuestSpaceId().isPresent()) {
-            builder.setGuestSpaceId(task.getGuestSpaceId().or(-1));
-        }
+        // TODO: weida revert this paragraph
+//        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
+////            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(), // TODO: weida delete here
+////                    task.getBasicAuthPassword().get());
+//            builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
+//        }
+//
+//        if (task.getGuestSpaceId().isPresent()) {
+//            builder.setGuestSpaceId(task.getGuestSpaceId().or(-1));
+//        }
 
         // TODO: weida delete here
 //        if (task.getGuestSpaceId().isPresent()) {

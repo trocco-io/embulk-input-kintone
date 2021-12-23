@@ -68,9 +68,12 @@ public class KintoneInputPlugin
 //                while (cursorResponse.getNext()) {
                 while (cursorResponse.isNext()) {
                     cursorResponse = client.getRecordsByCursor(cursor.getId());
+//                    for (Record record : cursorResponse.getRecords()) {
+//                        schema.visitColumns(new KintoneInputColumnVisitor(record, pageBuilder, task));
+//                        pageBuilder.addRecord();
+//                    }
                     for (Record record : cursorResponse.getRecords()) {
-                        schema.visitColumns(new KintoneInputColumnVisitor(record, pageBuilder, task));
-                        record.
+                        schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
                         pageBuilder.addRecord();
                     }
                     pageBuilder.flush();

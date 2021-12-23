@@ -23,6 +23,7 @@ dependencies {
     provided "org.embulk:embulk-core:0.9.12"
 //    compile group: 'com.cybozu.kintone', name: 'kintone-sdk', version: '0.4.0'
     compile "com.kintone:kintone-java-client:1.2.0"
+    compile 'com.google.code.gson:gson:2.8.2'
 
     testCompile "junit:junit:4.+"
     testCompile 'org.embulk:embulk-standards:0.9.12'
