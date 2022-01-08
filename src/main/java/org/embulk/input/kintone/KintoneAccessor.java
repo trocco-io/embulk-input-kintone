@@ -2,6 +2,8 @@ package org.embulk.input.kintone;
 
 //import com.cybozu.kintone.client.model.file.FileModel;
 import com.kintone.client.model.FileBody;
+import com.kintone.client.model.Group;
+import com.kintone.client.model.Organization;
 import com.kintone.client.model.User;
 //import com.kintone.client.model.app.field.FileFieldProperty;
 //import com.kintone.client.model.record.FileFieldValue;
@@ -41,25 +43,28 @@ public class KintoneAccessor {
                 List<User> users1 = this.record.getStatusAssigneeFieldValue();
                 return usersToString(users1);
             case ORGANIZATION_SELECT:
-                List<User> users2 = this.record.getStatusAssigneeFieldValue();
-                return usersToString(users2);
+                List<Organization> organizations = this.record.getOrganizationSelectFieldValue(name);
+                return organizations.stream().map(Organization::getCode)
+                        .reduce((accum, value) -> accum + this.delimiter + value)
+                        .orElse("");
             case GROUP_SELECT:
-                List<User> users3 = this.record.getStatusAssigneeFieldValue();
-                return usersToString(users3);
+                List<Group> groups = this.record.getGroupSelectFieldValue(name);
+                return groups.stream().map(Group::getCode)
+                        .reduce((accum, value) -> accum + this.delimiter + value)
+                        .orElse("");
             case STATUS_ASSIGNEE:
 //                ArrayList<Member> members = (ArrayList<Member>) this.record.get(name).getValue();
 //                return members.stream().map(Member::getCode)
 //                        .reduce((accum, value) -> accum + this.delimiter + value)
 //                        .orElse("");
-                List<User> users4 = this.record.getStatusAssigneeFieldValue();
-                return usersToString(users4);
+                List<User> users2 = this.record.getStatusAssigneeFieldValue();
+                return usersToString(users2);
 
             case SUBTABLE:
 //                Object subTableValueItem = this.record.get(name).getValue();
 //                return gson.toJson(subTableValueItem);
-//                List<TableRow> subTableValueItem = this.record.getSubtableFieldValue(name); // TODO: weida check here
-//                return gson.toJson(subTableValueItem); // TODO: weida test here
-                return "weida json test";
+                List<TableRow> subTableValueItem = this.record.getSubtableFieldValue(name); // TODO: weida check here
+                return gson.toJson(subTableValueItem); // TODO: weida test here
             case CREATOR:
                 User creator = record.getCreatorFieldValue();
                 return creator.getCode();
@@ -87,10 +92,43 @@ public class KintoneAccessor {
             case NUMBER:
 //                return String.valueOf(this.record.get(name).getValue());
                 return String.valueOf(this.record.getNumberFieldValue(name));
-            default:
+            case CALC:
+                return this.record.getCalcFieldValue(name).toString();
+            case CREATED_TIME:
+                return this.record.getCreatedTimeFieldValue().toString();
+            case DATE:
+                return this.record.getDateFieldValue(name).toString();
+            case DATETIME:
+                return this.record.getDateTimeFieldValue(name).toString();
+            case DROP_DOWN:
+                return this.record.getDropDownFieldValue(name);
+            case LINK:
+                return this.record.getLinkFieldValue(name);
+            case MULTI_LINE_TEXT:
+                return this.record.getMultiLineTextFieldValue(name);
+            case RADIO_BUTTON:
+                return this.record.getRadioButtonFieldValue(name);
+            case RECORD_NUMBER:
+                return this.record.getRecordNumberFieldValue();
+            case RICH_TEXT:
+                return this.record.getRichTextFieldValue(name);
+            case SINGLE_LINE_TEXT:
+                return this.record.getSingleLineTextFieldValue(name);
+            case STATUS:
+                return this.record.getStatusFieldValue();
+            case TIME:
+                return this.record.getTimeFieldValue(name).toString();
+            case UPDATED_TIME:
+                return this.record.getUpdatedTimeFieldValue().toString();
+            case SPACER:
+            case GROUP:
+            case HR:
+            case LABEL:
+            case REFERENCE_TABLE:
+            default: // there is no type not listed above and all these types link to default action have no specific value
 //                return (String) this.record.get(name).getValue();
 //                return this.record.getFieldValue(name).toString(); // TODO: weida check if this works expectedly as values are authentically converted to string
-                return "weida other test";
+                return "";
         }
     }
 

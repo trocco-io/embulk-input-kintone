@@ -1,10 +1,11 @@
 plugins {
     id "com.jfrog.bintray" version "1.1"
     id "com.github.jruby-gradle.base" version "1.5.0"
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
     id "java"
     id "checkstyle"
 }
-import com.github.jrubygradle.JRubyExec // TODO: weida revert here
+import com.github.jrubygradle.JRubyExec
 repositories {
     mavenCentral()
     jcenter()
@@ -17,6 +18,11 @@ version = "0.1.5"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+shadowJar {
+    exclude "org/embulk/plugin/**"
+    relocate "com.fasterxml.jackson", "embulk.kintone.com.fasterxml.jackson"
+}
 
 dependencies {
     compile  "org.embulk:embulk-core:0.9.12"
@@ -32,9 +38,12 @@ dependencies {
     testCompile "org.embulk:embulk-core:0.9.12:tests"
 }
 
-task classpath(type: Copy, dependsOn: ["jar"]) {
+task classpath(type: Copy, dependsOn: ["jar", "shadowJar"]) {
     doFirst { file("classpath").deleteDir() }
-    from (configurations.runtime - configurations.provided + files(jar.archivePath))
+    from (configurations.runtime - configurations.provided
+            + configurations.shadow
+            - files(shadowJar.getIncludedDependencies())
+            + files(shadowJar.archivePath))
     into "classpath"
 }
 clean { delete "classpath" }
@@ -63,11 +72,11 @@ task gem(type: JRubyExec, dependsOn: ["gemspec", "classpath"]) {
     doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }
 }
 
-task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
-    jrubyArgs "-S"
-    script "gem"
-    scriptArgs "push", "pkg/${project.name}-${project.version}.gem"
-}
+// task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
+  //  jrubyArgs "-S"
+  //  script "gem"
+  //  scriptArgs "push", "pkg/${project.name}-${project.version}.gem"
+//}
 
 task "package"(dependsOn: ["gemspec", "classpath"]) {
     doLast {

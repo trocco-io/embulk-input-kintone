@@ -52,16 +52,15 @@ public class KintoneClient {
             builder.authByApiToken(task.getToken().get());
         }
 
-        // TODO: weida revert this paragraph
-//        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
-////            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(), // TODO: weida delete here
-////                    task.getBasicAuthPassword().get());
-//            builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
-//        }
-//
-//        if (task.getGuestSpaceId().isPresent()) {
-//            builder.setGuestSpaceId(task.getGuestSpaceId().or(-1));
-//        }
+        if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
+//            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(), // TODO: weida delete here
+//                    task.getBasicAuthPassword().get());
+            builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
+        }
+
+        if (task.getGuestSpaceId().isPresent()) {
+            builder.setGuestSpaceId(task.getGuestSpaceId().or(-1));
+        }
 
         // TODO: weida delete here
 //        if (task.getGuestSpaceId().isPresent()) {
