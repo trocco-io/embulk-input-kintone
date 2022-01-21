@@ -19,7 +19,7 @@ public class KintoneClient {
     private com.kintone.client.KintoneClient client;
     private RecordClient recordClient;
 
-    public KintoneClient(final PluginTask task) throws ConfigException { }
+    public KintoneClient() throws ConfigException { }
 
     public void validateAuth(final PluginTask task) throws ConfigException {
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {

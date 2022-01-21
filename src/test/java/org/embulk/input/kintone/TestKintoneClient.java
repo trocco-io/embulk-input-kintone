@@ -28,6 +28,8 @@ public class TestKintoneClient {
     @Test
     public void checkClientWithUsernameAndPassword() {
         config = loadYamlResource(embulk, "base.yml");
+        System.out.println("UUID weida"); // TODO :weida delete here
+        System.out.println(config.toString());
         PluginTask task = config.loadConfig(PluginTask.class);
         Exception e = assertThrows(Exception.class, ()-> {
             client.validateAuth(task);

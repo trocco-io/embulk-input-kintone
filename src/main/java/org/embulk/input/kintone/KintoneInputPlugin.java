@@ -56,7 +56,7 @@ public class KintoneInputPlugin
 
         try {
             try (PageBuilder pageBuilder = getPageBuilder(schema, output)) {
-                KintoneClient client = getKintoneClient(task);
+                KintoneClient client = getKintoneClient();
                 client.validateAuth(task);
                 client.connect(task);
 
@@ -100,8 +100,8 @@ public class KintoneInputPlugin
     }
 
     @VisibleForTesting
-    protected KintoneClient getKintoneClient(final PluginTask task){
-        return new KintoneClient(task);
+    protected KintoneClient getKintoneClient(){
+        return new KintoneClient();
     }
 
 }

@@ -1,10 +1,13 @@
 package org.embulk.input.kintone;
 
-import com.cybozu.kintone.client.model.app.form.FieldType;
-import com.cybozu.kintone.client.model.record.GetRecordsResponse;
-import com.cybozu.kintone.client.model.record.field.FieldValue;
+//import com.cybozu.kintone.client.model.app.form.FieldType;
+//import com.cybozu.kintone.client.model.record.GetRecordsResponse;
+//import com.cybozu.kintone.client.model.record.field.FieldValue;
 
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
+import com.kintone.client.api.record.GetRecordsResponseBody;
+import com.kintone.client.model.record.*;
+
 import org.embulk.EmbulkTestRuntime;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
@@ -18,10 +21,13 @@ import org.embulk.spi.time.TimestampParser;
 import org.embulk.spi.util.Pages;
 import org.embulk.test.TestingEmbulk;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,28 +119,51 @@ public class TestKintoneInputPlugin {
         assertNotNull(task.getFields());
     }
 
-    private GetRecordsResponse createSampleData(){
-        HashMap<String, FieldValue> record1 = new HashMap<>();
-        HashMap<String, FieldValue> record2 = new HashMap<>();
-        ArrayList<HashMap<String, FieldValue>> records = new ArrayList<>();
-        GetRecordsResponse response = new GetRecordsResponse();
+//    private GetRecordsResponseBody createSampleData(){
+    private GetRecordsByCursorResponseBody createSampleData(){
+        Record record1 = new Record();
+        Record record2 = new Record();
+        ArrayList<Record> records = new ArrayList<>(2);
 
-        record1 = TestHelper.addField(record1, "foo", FieldType.SINGLE_LINE_TEXT, "test single text");
-        record1 = TestHelper.addField(record1, "bar", FieldType.NUMBER, 1);
-        record1 = TestHelper.addField(record1, "baz", FieldType.NUMBER, 1.111);
-        record1 = TestHelper.addField(record1, "date", FieldType.DATE, "2020-01-01");
-        record1 = TestHelper.addField(record1, "datetime", FieldType.DATE, "2020-01-01T00:00:00Z");
+//        record1 = TestHelper.addField(record1, "foo", FieldType.SINGLE_LINE_TEXT, "test single text");
+//        record1 = TestHelper.addField(record1, "bar", FieldType.NUMBER, 1);
+//        record1 = TestHelper.addField(record1, "baz", FieldType.NUMBER, 1.111);
+//        record1 = TestHelper.addField(record1, "date", FieldType.DATE, "2020-01-01");
+//        record1 = TestHelper.addField(record1, "datetime", FieldType.DATE, "2020-01-01T00:00:00Z");
+//        records.add(record1);
+//
+//        record2 = TestHelper.addField(record2, "foo", FieldType.SINGLE_LINE_TEXT, "test single text2");
+//        record2 = TestHelper.addField(record2, "bar", FieldType.NUMBER, 2);
+//        record2 = TestHelper.addField(record2, "baz", FieldType.NUMBER, 2.222);
+//        record2 = TestHelper.addField(record2, "date", FieldType.DATE, "2020-02-02");
+//        record2 = TestHelper.addField(record2, "datetime", FieldType.DATE, "2020-02-02T00:00:00Z");
+//        records.add(record2);
+
+        record1.putField("foo",  new SingleLineTextFieldValue("test single text"));
+//        record1 = TestHelper.addField(record1, "foo", FieldType.SINGLE_LINE_TEXT, "test single text");
+        record1.putField("bar",  new NumberFieldValue(Long.valueOf(1)));
+//        record1 = TestHelper.addField(record1, "bar", FieldType.NUMBER, 1);
+        record1.putField("baz",  new NumberFieldValue(Long.valueOf(1)));
+//        record1 = TestHelper.addField(record1, "baz", FieldType.NUMBER, 1.111);
+        record1.putField("date",  new DateFieldValue(LocalDate.of(2020,1,1)));
+//        record1 = TestHelper.addField(record1, "date", FieldType.DATE, "2020-01-01");
+        record1.putField("datetime",  new DateTimeFieldValue(ZonedDateTime.parse("2020-01-01T00:00:00Z")));
+//        record1 = TestHelper.addField(record1, "datetime", FieldType.DATE, "2020-01-01T00:00:00Z");
         records.add(record1);
 
-        record2 = TestHelper.addField(record2, "foo", FieldType.SINGLE_LINE_TEXT, "test single text2");
-        record2 = TestHelper.addField(record2, "bar", FieldType.NUMBER, 2);
-        record2 = TestHelper.addField(record2, "baz", FieldType.NUMBER, 2.222);
-        record2 = TestHelper.addField(record2, "date", FieldType.DATE, "2020-02-02");
-        record2 = TestHelper.addField(record2, "datetime", FieldType.DATE, "2020-02-02T00:00:00Z");
+        record2.putField("foo",  new SingleLineTextFieldValue("test single text2"));
+//        record2 = TestHelper.addField(record2, "foo", FieldType.SINGLE_LINE_TEXT, "test single text2");
+        record2.putField("bar",  new NumberFieldValue(Long.valueOf(2)));
+//        record2 = TestHelper.addField(record2, "bar", FieldType.NUMBER, 2);
+        record2.putField("baz",  new NumberFieldValue(Long.valueOf(2)));
+//        record2 = TestHelper.addField(record2, "baz", FieldType.NUMBER, 2.222);
+        record2.putField("date",  new DateFieldValue(LocalDate.of(2020,2,2)));
+//        record2 = TestHelper.addField(record2, "date", FieldType.DATE, "2020-02-02");
+        record2.putField("datetime",  new DateTimeFieldValue(ZonedDateTime.parse("2020-02-02T00:00:00Z")));
+//        record2 = TestHelper.addField(record2, "datetime", FieldType.DATE, "2020-02-02T00:00:00Z");
         records.add(record2);
 
-        response.setRecords(records);
-        response.setTotalCount(2);
+        GetRecordsByCursorResponseBody response = new GetRecordsByCursorResponseBody(false, records);
         return response;
     }
 

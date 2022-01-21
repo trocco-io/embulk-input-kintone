@@ -32,7 +32,7 @@ public class KintoneAccessor {
         }
         switch (this.record.getFieldType(name)) {
             case USER_SELECT:
-                List<User> users1 = this.record.getStatusAssigneeFieldValue();
+                List<User> users1 = this.record.getUserSelectFieldValue(name);
                 return usersToString(users1);
             case ORGANIZATION_SELECT:
                 List<Organization> organizations = this.record.getOrganizationSelectFieldValue(name);
