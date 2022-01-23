@@ -25,8 +25,8 @@ shadowJar {
 }
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.9.17"
-    provided "org.embulk:embulk-core:0.9.17"
+    compile  "org.embulk:embulk-core:0.9.12"
+    provided "org.embulk:embulk-core:0.9.12"
 
     compile "com.kintone:kintone-java-client:1.2.0"
     compile 'com.google.code.gson:gson:2.8.2'
