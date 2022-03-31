@@ -1,15 +1,16 @@
 package org.embulk.input.kintone;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
-import org.embulk.spi.json.JsonParser;
 import org.embulk.spi.Column;
-import org.embulk.spi.ColumnConfig;
 import org.embulk.spi.ColumnVisitor;
 import org.embulk.spi.PageBuilder;
-import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampParser;
+import org.embulk.util.config.units.ColumnConfig;
+import org.embulk.util.json.JsonParser;
+import org.embulk.util.timestamp.TimestampFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,15 +82,13 @@ public class KintoneInputColumnVisitor implements ColumnVisitor {
             for (ColumnConfig config : columnConfigs) {
                 if (config.getName().equals(column.getName())
                         && config.getConfigSource() != null
-                        && config.getConfigSource().getObjectNode() != null
-                        && config.getConfigSource().getObjectNode().get("format") != null
-                        && config.getConfigSource().getObjectNode().get("format").isTextual()) {
-                    pattern = config.getConfigSource().getObjectNode().get("format").asText();
+                        && config.getFormat() != null) {
+                    pattern = config.getFormat();
                     break;
                 }
             }
-            TimestampParser parser = TimestampParser.of(pattern, "UTC");
-            Timestamp result = parser.parse(accessor.get(column.getName()));
+            TimestampFormatter formatter = TimestampFormatter.builder("ruby:%Y-%m-%dT%H:%M:%S%z").setDefaultZoneOffset(ZoneOffset.UTC).build();
+            Instant result = formatter.parse(accessor.get(column.getName()));
             pageBuilder.setTimestamp(column, result);
         } catch (Exception e) {
             pageBuilder.setNull(column);

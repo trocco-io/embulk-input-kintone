@@ -1,5 +1,6 @@
 package org.embulk.input.kintone;
 
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import com.kintone.client.model.record.*;
 
@@ -11,16 +12,21 @@ import org.embulk.config.TaskSource;
 import org.embulk.spi.InputPlugin;
 import org.embulk.spi.Schema;
 import org.embulk.spi.TestPageBuilderReader.MockPageOutput;
-import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampParser;
 import org.embulk.spi.util.Pages;
 import org.embulk.test.TestingEmbulk;
 
+import org.embulk.util.config.ConfigMapperFactory;
+import org.embulk.util.config.modules.ColumnModule;
+import org.embulk.util.config.modules.TimestampModule;
+import org.embulk.util.config.modules.TypeModule;
+import org.embulk.util.timestamp.TimestampFormatter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +42,11 @@ public class TestKintoneInputPlugin {
     private KintoneInputPlugin kintoneInputPlugin;
     private KintoneClient kintoneClient;
     private MockPageOutput output = new MockPageOutput();
-    private TimestampParser dateParser = TimestampParser.of("%Y-%m-%d", "UTC");
-    private TimestampParser timestampParser = TimestampParser.of("%Y-%m-%dT%H:%M:%S%z", "UTC");
+    private final org.embulk.util.config.ConfigMapper configMapper = ConfigMapperFactory
+            .with(new GuavaModule(), new ColumnModule(), new TypeModule(), new TimestampModule())
+            .createConfigMapper();
+    TimestampFormatter dateParser = TimestampFormatter.builder("ruby:%Y-%m-%d").setDefaultZoneOffset(ZoneOffset.UTC).build();
+    TimestampFormatter timestampParser = TimestampFormatter.builder("ruby:%Y-%m-%dT%H:%M:%S%z").setDefaultZoneOffset(ZoneOffset.UTC).build();
 
     private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName) {
         return embulk.loadYamlResource(BASIC_RESOURCE_PATH + fileName);
@@ -61,7 +70,7 @@ public class TestKintoneInputPlugin {
     // @Test
     public void simpleTest(){
         config = loadYamlResource(embulk, "base.yml");
-        PluginTask task = config.loadConfig(PluginTask.class);
+        PluginTask task = configMapper.map(config, PluginTask.class);
         Schema outputSchema =  task.getFields().toSchema();
         GetRecordsByCursorResponseBody response = createSampleData();
         when(kintoneClient.getResponse(any(PluginTask.class))).thenReturn(response);
@@ -73,8 +82,8 @@ public class TestKintoneInputPlugin {
         List<Object[]> outputRecords = Pages.toObjects(outputSchema, output.pages);
         Object[] record1 = outputRecords.get(0);
 
-        Timestamp date1 = dateParser.parse("2020-01-01");
-        Timestamp timestamp1 = timestampParser.parse("2020-01-01T00:00:00Z");
+        Instant date1 = dateParser.parse("2020-01-01");
+        Instant timestamp1 = timestampParser.parse("2020-01-01T00:00:00Z");
 
         assertEquals(2, outputRecords.size());
 
@@ -84,8 +93,8 @@ public class TestKintoneInputPlugin {
         assertEquals(date1, record1[3]);
         assertEquals(timestamp1, record1[4]);
 
-        Timestamp date2 = dateParser.parse("2020-02-02");
-        Timestamp timestamp2 = timestampParser.parse("2020-02-02T00:00:00Z");
+        Instant date2 = dateParser.parse("2020-02-02");
+        Instant timestamp2 = timestampParser.parse("2020-02-02T00:00:00Z");
 
         Object[] record2 = outputRecords.get(1);
         assertEquals("test single text2", record2[0]);
@@ -98,7 +107,7 @@ public class TestKintoneInputPlugin {
     @Test
     public void checkDefaultConfigValues() {
         config = loadYamlResource(embulk, "base.yml");
-        PluginTask task = config.loadConfig(PluginTask.class);
+        PluginTask task = configMapper.map(config, PluginTask.class);
         assertEquals("dev.cybozu.com", task.getDomain());
         assertEquals(1, task.getAppId());
         assertEquals("username", task.getUsername().get());

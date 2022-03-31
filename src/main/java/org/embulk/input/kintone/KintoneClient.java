@@ -7,7 +7,7 @@ import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import com.kintone.client.exception.KintoneApiRuntimeException;
 import org.embulk.config.ConfigException;
-import org.embulk.spi.ColumnConfig;
+import org.embulk.util.config.units.ColumnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
