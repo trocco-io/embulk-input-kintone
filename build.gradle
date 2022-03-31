@@ -32,24 +32,14 @@ dependencies {
     compile "org.embulk:embulk-util-json:0.1.1"
     compile "com.google.guava:guava:23.0"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:2.13.2"
-
-    // compile  "org.embulk:embulk-core:0.9.12"
-    // provided "org.embulk:embulk-core:0.9.12"
-
     compile "com.kintone:kintone-java-client:1.2.0"
     compile 'com.google.code.gson:gson:2.8.2'
 
-//    testCompile "junit:junit:4.+"
-//    testCompile 'org.embulk:embulk-standards:0.9.12'
-//    testCompile 'org.embulk:embulk-test:0.9.12'
-//    testCompile "org.mockito:mockito-core:1.+"
-//    testCompile "org.embulk:embulk-core:0.9.12:tests"
-      testCompile "org.embulk:embulk-api:0.10.35"
-      testCompile "org.embulk:embulk-spi:0.10.35"
-      testCompile "org.embulk:embulk-junit4:0.10.35"  // "embulk-test" から名前が変わりました
-      testCompile "org.mockito:mockito-core:4.4.0"
-//      testCompile "org.embulk:embulk-core:0.10.??"  // "testCompile" では "embulk-core" を使っても大丈夫
-      testCompile "org.embulk:embulk-deps:0.10.35"  // "testCompile" では "embulk-deps" を使っても大丈夫
+    testCompile "org.embulk:embulk-api:0.10.35"
+    testCompile "org.embulk:embulk-spi:0.10.35"
+    testCompile "org.embulk:embulk-junit4:0.10.35"
+    testCompile "org.mockito:mockito-core:4.4.0"
+    testCompile "org.embulk:embulk-deps:0.10.35"
 }
 
 task classpath(type: Copy, dependsOn: ["jar", "shadowJar"]) {
