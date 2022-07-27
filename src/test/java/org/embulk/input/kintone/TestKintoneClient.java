@@ -20,9 +20,7 @@ public class TestKintoneClient {
     private KintoneClient client = new KintoneClient();
     private static final String BASIC_RESOURCE_PATH = "org/embulk/input/kintone/";
     private static final String SUCCESS_MSG = "Exception should be thrown by this";
-    private final org.embulk.util.config.ConfigMapper configMapper = ConfigMapperFactory
-            .with(new GuavaModule(), new ColumnModule(), new TypeModule(), new TimestampModule())
-            .createConfigMapper();
+    private final org.embulk.util.config.ConfigMapper configMapper = KintoneInputPlugin.CONFIG_MAPPER_FACTORY.createConfigMapper();
 
     private static ConfigSource loadYamlResource(TestingEmbulk embulk, String fileName) {
         return embulk.loadYamlResource(BASIC_RESOURCE_PATH + fileName);

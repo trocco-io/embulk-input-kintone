@@ -45,7 +45,7 @@ public class KintoneClient {
         }
 
         if (task.getGuestSpaceId().isPresent()) {
-            builder.setGuestSpaceId(task.getGuestSpaceId().or(-1));
+            builder.setGuestSpaceId(task.getGuestSpaceId().orElse(-1));
         }
 
         this.client = builder.build();
@@ -81,7 +81,7 @@ public class KintoneClient {
         CreateCursorRequest request = new CreateCursorRequest();
         request.setApp(Long.valueOf(task.getAppId()));
         request.setFields(fields);
-        request.setQuery(task.getQuery().or(""));
+        request.setQuery(task.getQuery().orElse(""));
         request.setSize(Long.valueOf(FETCH_SIZE)); // there is no other way to set up property of size hence set it via CreateCursorRequest
         try{
             return this.recordClient.createCursor(request);

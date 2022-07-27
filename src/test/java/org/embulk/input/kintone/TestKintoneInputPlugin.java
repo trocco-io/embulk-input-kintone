@@ -42,9 +42,7 @@ public class TestKintoneInputPlugin {
     private KintoneInputPlugin kintoneInputPlugin;
     private KintoneClient kintoneClient;
     private MockPageOutput output = new MockPageOutput();
-    private final org.embulk.util.config.ConfigMapper configMapper = ConfigMapperFactory
-            .with(new GuavaModule(), new ColumnModule(), new TypeModule(), new TimestampModule())
-            .createConfigMapper();
+    private final org.embulk.util.config.ConfigMapper configMapper = KintoneInputPlugin.CONFIG_MAPPER_FACTORY.createConfigMapper();
     TimestampFormatter dateParser = TimestampFormatter.builder("ruby:%Y-%m-%d").setDefaultZoneOffset(ZoneOffset.UTC).build();
     TimestampFormatter timestampParser = TimestampFormatter.builder("ruby:%Y-%m-%dT%H:%M:%S%z").setDefaultZoneOffset(ZoneOffset.UTC).build();
 

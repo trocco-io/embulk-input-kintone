@@ -1,7 +1,7 @@
 package org.embulk.input.kintone;
 
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import org.embulk.util.config.Config;
 import org.embulk.util.config.ConfigDefault;
 import org.embulk.util.config.Task;
