@@ -3,30 +3,46 @@ package org.embulk.input.kintone;
 import com.kintone.client.model.Group;
 import com.kintone.client.model.Organization;
 import com.kintone.client.model.User;
-import com.kintone.client.model.record.*;
+import com.kintone.client.model.record.CheckBoxFieldValue;
+import com.kintone.client.model.record.DateFieldValue;
+import com.kintone.client.model.record.DateTimeFieldValue;
+import com.kintone.client.model.record.DropDownFieldValue;
+import com.kintone.client.model.record.GroupSelectFieldValue;
+import com.kintone.client.model.record.LinkFieldValue;
+import com.kintone.client.model.record.MultiLineTextFieldValue;
+import com.kintone.client.model.record.MultiSelectFieldValue;
+import com.kintone.client.model.record.NumberFieldValue;
+import com.kintone.client.model.record.OrganizationSelectFieldValue;
+import com.kintone.client.model.record.RadioButtonFieldValue;
+import com.kintone.client.model.record.Record;
+import com.kintone.client.model.record.RichTextFieldValue;
+import com.kintone.client.model.record.SingleLineTextFieldValue;
+import com.kintone.client.model.record.SubtableFieldValue;
+import com.kintone.client.model.record.TableRow;
+import com.kintone.client.model.record.TimeFieldValue;
+import com.kintone.client.model.record.UserSelectFieldValue;
 import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-
-public class TestKintoneAccessor {
-    private static User testman1 = new User("name1", "code1");
-    private static User testman2 = new User("name2", "code2");
-    private static Group testgroup1 = new Group("name3", "code3");
-    private static Group testgroup2 = new Group("name4", "code4");
-    private static Organization testorg1 = new Organization("name5", "code5");
-    private static Organization testorg2 = new Organization("name5", "code6");
+public class TestKintoneAccessor
+{
+    private static final User testman1 = new User("name1", "code1");
+    private static final User testman2 = new User("name2", "code2");
+    private static final Group testgroup1 = new Group("name3", "code3");
+    private static final Group testgroup2 = new Group("name4", "code4");
+    private static final Organization testorg1 = new Organization("name5", "code5");
+    private static final Organization testorg2 = new Organization("name5", "code6");
     private Integer uniqueKey = 1;
 
-    public Record createTestRecord() {
+    public Record createTestRecord()
+    {
         Record tRecord = new Record();
-        HashMap<String, FieldValue> testRecord = new HashMap<>();
 
         tRecord.putField("文字列__1行", new SingleLineTextFieldValue("test single text"));
         tRecord.putField("数値", new NumberFieldValue(this.uniqueKey.longValue()));
@@ -41,7 +57,7 @@ public class TestKintoneAccessor {
         tRecord.putField("ラジオボタン", new RadioButtonFieldValue("sample2"));
         tRecord.putField("ドロップダウン", new DropDownFieldValue("sample3"));
         tRecord.putField("複数選択", new MultiSelectFieldValue(selectedItemList));
-        tRecord.putField("リンク", new LinkFieldValue("http://cybozu.co.jp/"));
+        tRecord.putField("リンク", new LinkFieldValue("https://cybozu.co.jp/"));
         tRecord.putField("日付", new DateFieldValue(LocalDate.of(2018, 1, 1)));
         tRecord.putField("時刻", new TimeFieldValue(LocalTime.of(12, 34)));
         tRecord.putField("日時", new DateTimeFieldValue(ZonedDateTime.parse("2018-01-02T02:30:00Z")));
@@ -59,7 +75,7 @@ public class TestKintoneAccessor {
         orgList.add(testorg2);
         tRecord.putField("組織選択", new OrganizationSelectFieldValue(orgList));
 
-        TableRow tableItem1 = new TableRow(Long.valueOf(1));
+        TableRow tableItem1 = new TableRow(1L);
         tableItem1.putField("sample field1", new SingleLineTextFieldValue("sample_text1"));
         SubtableFieldValue subTableRecords = new SubtableFieldValue(tableItem1);
         tRecord.putField("サブテーブル", subTableRecords);
@@ -68,7 +84,8 @@ public class TestKintoneAccessor {
     }
 
     @Test
-    public void testAccess() {
+    public void testAccess()
+    {
         Record testRecord = createTestRecord();
         KintoneAccessor accessor = new KintoneAccessor(testRecord);
         String multiValue = "sample1\nsample2";
@@ -93,5 +110,4 @@ public class TestKintoneAccessor {
         assertEquals(orgSelect, accessor.get("組織選択"));
         assertEquals(subTableValue, accessor.get("サブテーブル"));
     }
-
 }

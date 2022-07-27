@@ -1,8 +1,8 @@
 package org.embulk.input.kintone;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
-import com.google.common.annotations.VisibleForTesting;
 import com.kintone.client.model.record.Record;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
@@ -23,7 +23,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class KintoneInputPlugin
-        implements InputPlugin {
+        implements InputPlugin
+{
     protected static final ConfigMapperFactory CONFIG_MAPPER_FACTORY = ConfigMapperFactory.builder()
             .addDefaultModules()
             .addModule(new TimestampModule())
@@ -32,34 +33,38 @@ public class KintoneInputPlugin
 
     @Override
     public ConfigDiff transaction(ConfigSource config,
-                                  InputPlugin.Control control) {
+                                  InputPlugin.Control control)
+    {
         final ConfigMapper configMapper = CONFIG_MAPPER_FACTORY.createConfigMapper();
         final PluginTask task = configMapper.map(config, PluginTask.class);
 
         Schema schema = task.getFields().toSchema();
         int taskCount = 1;  // number of run() method calls
 
-        return resume(task.dump(), schema, taskCount, control);
+        return resume(task.toTaskSource(), schema, taskCount, control);
     }
 
     @Override
     public ConfigDiff resume(TaskSource taskSource,
                              Schema schema, int taskCount,
-                             InputPlugin.Control control) {
+                             InputPlugin.Control control)
+    {
         control.run(taskSource, schema, taskCount);
-        return Exec.newConfigDiff();
+        return CONFIG_MAPPER_FACTORY.newConfigDiff();
     }
 
     @Override
     public void cleanup(TaskSource taskSource,
                         Schema schema, int taskCount,
-                        List<TaskReport> successTaskReports) {
+                        List<TaskReport> successTaskReports)
+    {
     }
 
     @Override
     public TaskReport run(TaskSource taskSource,
                           Schema schema, int taskIndex,
-                          PageOutput output) {
+                          PageOutput output)
+    {
         final TaskMapper taskMapper = CONFIG_MAPPER_FACTORY.createTaskMapper();
         final PluginTask task = taskMapper.map(taskSource, PluginTask.class);
 
@@ -83,16 +88,18 @@ public class KintoneInputPlugin
 
                 pageBuilder.finish();
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
         }
-        return Exec.newTaskReport();
+        return CONFIG_MAPPER_FACTORY.newTaskReport();
     }
 
     @Override
-    public ConfigDiff guess(ConfigSource config) {
-        return Exec.newConfigDiff();
+    public ConfigDiff guess(ConfigSource config)
+    {
+        return CONFIG_MAPPER_FACTORY.newConfigDiff();
     }
 
     @VisibleForTesting
@@ -102,8 +109,8 @@ public class KintoneInputPlugin
     }
 
     @VisibleForTesting
-    protected KintoneClient getKintoneClient(){
+    protected KintoneClient getKintoneClient()
+    {
         return new KintoneClient();
     }
-
 }

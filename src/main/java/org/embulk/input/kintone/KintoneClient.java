@@ -13,30 +13,38 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-public class KintoneClient {
+public class KintoneClient
+{
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
-    private com.kintone.client.KintoneClient client;
     private RecordClient recordClient;
 
-    public KintoneClient() throws ConfigException { }
+    public KintoneClient() throws ConfigException
+    {
+    }
 
-    public void validateAuth(final PluginTask task) throws ConfigException {
+    @SuppressWarnings("StatementWithEmptyBody")
+    public void validateAuth(final PluginTask task) throws ConfigException
+    {
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
-            return;
-        } else if (task.getToken().isPresent()) {
-            return;
-        } else {
+            // NOP
+        }
+        else if (task.getToken().isPresent()) {
+            // NOP
+        }
+        else {
             throw new ConfigException("Username and password or token must be provided");
         }
     }
 
-    public void connect(final PluginTask task) {
-        System.out.println(String.format("https://%s", task.getDomain()));
+    public void connect(final PluginTask task)
+    {
+        System.out.printf("https://%s%n", task.getDomain());
         KintoneClientBuilder builder = KintoneClientBuilder.create(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             builder.authByPassword(task.getUsername().get(), task.getPassword().get());
-        } else if (task.getToken().isPresent()) {
+        }
+        else if (task.getToken().isPresent()) {
             builder.authByApiToken(task.getToken().get());
         }
 
@@ -48,52 +56,58 @@ public class KintoneClient {
             builder.setGuestSpaceId(task.getGuestSpaceId().orElse(-1));
         }
 
-        this.client = builder.build();
+        com.kintone.client.KintoneClient client = builder.build();
         this.recordClient = client.record();
     }
 
-
-    public GetRecordsByCursorResponseBody getResponse(final PluginTask task) {
+    public GetRecordsByCursorResponseBody getResponse(final PluginTask task)
+    {
         CreateCursorResponseBody cursor = this.createCursor(task);
         try {
             return this.recordClient.getRecordsByCursor(cursor.getId());
-        }catch (KintoneApiRuntimeException e){
+        }
+        catch (KintoneApiRuntimeException e) {
             this.deleteCursor(cursor.getId());
             throw new RuntimeException(e);
         }
     }
 
-    public GetRecordsByCursorResponseBody getRecordsByCursor(String cursor){
+    public GetRecordsByCursorResponseBody getRecordsByCursor(String cursor)
+    {
         try {
             return this.recordClient.getRecordsByCursor(cursor);
-        }catch (KintoneApiRuntimeException e){
+        }
+        catch (KintoneApiRuntimeException e) {
             this.deleteCursor(cursor);
             throw new RuntimeException(e);
         }
     }
 
-    public CreateCursorResponseBody createCursor(final PluginTask task){
+    public CreateCursorResponseBody createCursor(final PluginTask task)
+    {
         ArrayList<String> fields = new ArrayList<>();
-        for (ColumnConfig c : task.getFields().getColumns()
-        ) {
+        for (ColumnConfig c : task.getFields().getColumns()) {
             fields.add(c.getName());
         }
         CreateCursorRequest request = new CreateCursorRequest();
-        request.setApp(Long.valueOf(task.getAppId()));
+        request.setApp((long) task.getAppId());
         request.setFields(fields);
         request.setQuery(task.getQuery().orElse(""));
-        request.setSize(Long.valueOf(FETCH_SIZE)); // there is no other way to set up property of size hence set it via CreateCursorRequest
-        try{
+        request.setSize((long) FETCH_SIZE); // there is no other way to set up property of size hence set it via CreateCursorRequest
+        try {
             return this.recordClient.createCursor(request);
-        }catch (KintoneApiRuntimeException e) {
+        }
+        catch (KintoneApiRuntimeException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void deleteCursor(String cursor) {
+    public void deleteCursor(String cursor)
+    {
         try {
             this.recordClient.deleteCursor(cursor);
-        }catch (KintoneApiRuntimeException e){
+        }
+        catch (KintoneApiRuntimeException e) {
             this.logger.error(e.toString());
         }
     }

@@ -1,29 +1,29 @@
 package org.embulk.input.kintone;
 
+import com.google.gson.Gson;
 import com.kintone.client.model.FileBody;
 import com.kintone.client.model.Group;
 import com.kintone.client.model.Organization;
 import com.kintone.client.model.User;
 import com.kintone.client.model.record.Record;
 import com.kintone.client.model.record.TableRow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.Gson;
 
 import java.util.List;
 
-public class KintoneAccessor {
-    private final Logger logger = LoggerFactory.getLogger(KintoneAccessor.class);
+public class KintoneAccessor
+{
     private final Gson gson = new Gson();
 
     private final Record record;
     private final String delimiter = "\n";
 
-    public KintoneAccessor(final Record record) {
+    public KintoneAccessor(final Record record)
+    {
         this.record = record;
     }
 
-    public String get(String name) {
+    public String get(String name)
+    {
         if (name.equals("$id")) {
             return record.getId().toString();
         }
@@ -110,13 +110,15 @@ public class KintoneAccessor {
         }
     }
 
-    private String ItemListToString(List<String> list) {
+    private String ItemListToString(List<String> list)
+    {
         return list.stream()
                 .reduce((accum, value) -> accum + this.delimiter + value)
                 .orElse("");
     }
 
-    private String usersToString(List<User> list) {
+    private String usersToString(List<User> list)
+    {
         return list.stream().map(User::getCode)
                 .reduce((accum, value) -> accum + this.delimiter + value)
                 .orElse("");

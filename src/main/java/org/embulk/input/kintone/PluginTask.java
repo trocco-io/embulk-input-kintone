@@ -1,14 +1,15 @@
 package org.embulk.input.kintone;
 
-
-import java.util.Optional;
 import org.embulk.util.config.Config;
 import org.embulk.util.config.ConfigDefault;
 import org.embulk.util.config.Task;
 import org.embulk.util.config.units.SchemaConfig;
 
+import java.util.Optional;
+
 public interface PluginTask
-        extends Task {
+        extends Task
+{
     @Config("domain")
     String getDomain();
 
