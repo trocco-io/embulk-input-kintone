@@ -26,8 +26,8 @@ dependencies {
     compile "org.embulk:embulk-util-json:0.1.1"
     compile "org.embulk:embulk-util-timestamp:0.2.1"
     compile "com.fasterxml.jackson.core:jackson-databind:2.6.7" // Need to specify explicitly
-    compile "com.google.guava:guava:31.1-jre"
     compile "com.google.code.gson:gson:2.9.0"
+    compile "com.google.guava:guava:31.1-jre"
 
     compile project(path: ":shadow-kintone-java-client", configuration: "shadow")
 

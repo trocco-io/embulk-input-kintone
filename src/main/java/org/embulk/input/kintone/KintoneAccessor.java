@@ -6,9 +6,9 @@ import com.kintone.client.model.Group;
 import com.kintone.client.model.Organization;
 import com.kintone.client.model.User;
 import com.kintone.client.model.record.Record;
-import com.kintone.client.model.record.TableRow;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class KintoneAccessor
 {
@@ -22,105 +22,93 @@ public class KintoneAccessor
         this.record = record;
     }
 
-    public String get(String name)
+    public String get(final String name)
     {
-        if (name.equals("$id")) {
-            return record.getId().toString();
-        }
-        if (name.equals("$revision")) {
-            return record.getRevision().toString();
-        }
-        switch (this.record.getFieldType(name)) {
+        return getAsString(name);
+    }
+
+    private String getAsString(final String fieldCode)
+    {
+        switch (record.getFieldType(fieldCode)) {
             case USER_SELECT:
-                List<User> users1 = this.record.getUserSelectFieldValue(name);
-                return usersToString(users1);
+                return toString(record.getUserSelectFieldValue(fieldCode), User::getCode);
             case ORGANIZATION_SELECT:
-                List<Organization> organizations = this.record.getOrganizationSelectFieldValue(name);
-                return organizations.stream().map(Organization::getCode)
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
+                return toString(record.getOrganizationSelectFieldValue(fieldCode), Organization::getCode);
             case GROUP_SELECT:
-                List<Group> groups = this.record.getGroupSelectFieldValue(name);
-                return groups.stream().map(Group::getCode)
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
+                return toString(record.getGroupSelectFieldValue(fieldCode), Group::getCode);
             case STATUS_ASSIGNEE:
-                List<User> users2 = this.record.getStatusAssigneeFieldValue();
-                return usersToString(users2);
+                return toString(record.getStatusAssigneeFieldValue(), User::getCode);
             case SUBTABLE:
-                List<TableRow> subTableValueItem = this.record.getSubtableFieldValue(name);
-                return gson.toJson(subTableValueItem);
+                return gson.toJson(record.getSubtableFieldValue(fieldCode));
             case CREATOR:
-                User creator = record.getCreatorFieldValue();
-                return creator.getCode();
+                return record.getCreatorFieldValue().getCode();
             case MODIFIER:
-                User user = record.getModifierFieldValue();
-                return user.getCode();
+                return record.getModifierFieldValue().getCode();
             case CHECK_BOX:
-                List<String> list1 = this.record.getCheckBoxFieldValue(name);
-                return ItemListToString(list1);
+                return toString(record.getCheckBoxFieldValue(fieldCode));
             case MULTI_SELECT:
-                List<String> list2 = this.record.getMultiSelectFieldValue(name);
-                return ItemListToString(list2);
+                return toString(record.getMultiSelectFieldValue(fieldCode));
             case CATEGORY:
-                List<String> list3 = this.record.getCategoryFieldValue();
-                return ItemListToString(list3);
+                return toString(record.getCategoryFieldValue());
             case FILE:
-                List<FileBody> cbFileList = this.record.getFileFieldValue(name);
-                return cbFileList.stream().map(FileBody::getFileKey)
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
+                return toString(record.getFileFieldValue(fieldCode), FileBody::getFileKey);
             case NUMBER:
-                return String.valueOf(this.record.getNumberFieldValue(name));
+                return String.valueOf(record.getNumberFieldValue(fieldCode));
+            // 以上は既存で明示的に処理していたもの
             case CALC:
-                return this.record.getCalcFieldValue(name).toString();
-            case CREATED_TIME:
-                return this.record.getCreatedTimeFieldValue().toString();
-            case DATE:
-                return this.record.getDateFieldValue(name).toString();
-            case DATETIME:
-                return this.record.getDateTimeFieldValue(name).toString();
+                return String.valueOf(record.getCalcFieldValue(fieldCode));
             case DROP_DOWN:
-                return this.record.getDropDownFieldValue(name);
+                return record.getDropDownFieldValue(fieldCode);
             case LINK:
-                return this.record.getLinkFieldValue(name);
+                return record.getLinkFieldValue(fieldCode);
             case MULTI_LINE_TEXT:
-                return this.record.getMultiLineTextFieldValue(name);
+                return record.getMultiLineTextFieldValue(fieldCode);
             case RADIO_BUTTON:
-                return this.record.getRadioButtonFieldValue(name);
+                return record.getRadioButtonFieldValue(fieldCode);
             case RECORD_NUMBER:
-                return this.record.getRecordNumberFieldValue();
+                return record.getRecordNumberFieldValue();
             case RICH_TEXT:
-                return this.record.getRichTextFieldValue(name);
+                return record.getRichTextFieldValue(fieldCode);
             case SINGLE_LINE_TEXT:
-                return this.record.getSingleLineTextFieldValue(name);
+                return record.getSingleLineTextFieldValue(fieldCode);
             case STATUS:
-                return this.record.getStatusFieldValue();
+                return record.getStatusFieldValue();
+            case DATE:
+                return String.valueOf(record.getDateFieldValue(fieldCode));
             case TIME:
-                return this.record.getTimeFieldValue(name).toString();
+                return String.valueOf(record.getTimeFieldValue(fieldCode));
+            case DATETIME:
+                return String.valueOf(record.getDateTimeFieldValue(fieldCode));
+            case CREATED_TIME:
+                return String.valueOf(record.getCreatedTimeFieldValue());
             case UPDATED_TIME:
-                return this.record.getUpdatedTimeFieldValue().toString();
-            case SPACER:
+                return String.valueOf(record.getUpdatedTimeFieldValue());
+            case __ID__:
+                return String.valueOf(record.getId());
+            case __REVISION__:
+                return String.valueOf(record.getRevision());
+            // 以下は値を取得できないもの
             case GROUP:
             case HR:
             case LABEL:
             case REFERENCE_TABLE:
-            default: // there is no type not listed above and all these types link to default action have no specific value
+            case SPACER:
+            default:
                 return "";
         }
     }
 
-    private String ItemListToString(List<String> list)
+    private String toString(List<String> list)
     {
         return list.stream()
-                .reduce((accum, value) -> accum + this.delimiter + value)
+                .reduce((accum, value) -> accum + delimiter + value)
                 .orElse("");
     }
 
-    private String usersToString(List<User> list)
+    private <T> String toString(List<T> list, Function<T, String> mapper)
     {
-        return list.stream().map(User::getCode)
-                .reduce((accum, value) -> accum + this.delimiter + value)
+        return list.stream().map(mapper)
+                .reduce((accum, value) -> accum + delimiter + value)
                 .orElse("");
     }
 }

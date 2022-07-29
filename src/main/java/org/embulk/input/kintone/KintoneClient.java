@@ -39,7 +39,6 @@ public class KintoneClient
 
     public void connect(final PluginTask task)
     {
-        System.out.printf("https://%s%n", task.getDomain());
         KintoneClientBuilder builder = KintoneClientBuilder.create(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             builder.authByPassword(task.getUsername().get(), task.getPassword().get());
@@ -93,7 +92,7 @@ public class KintoneClient
         request.setApp((long) task.getAppId());
         request.setFields(fields);
         request.setQuery(task.getQuery().orElse(""));
-        request.setSize((long) FETCH_SIZE); // there is no other way to set up property of size hence set it via CreateCursorRequest
+        request.setSize((long) FETCH_SIZE);
         try {
             return this.recordClient.createCursor(request);
         }
