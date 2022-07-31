@@ -8,6 +8,8 @@ import org.embulk.spi.time.Timestamp;
 import org.embulk.util.config.units.ColumnConfig;
 import org.embulk.util.json.JsonParser;
 import org.embulk.util.timestamp.TimestampFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +19,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
 {
     private static final String DEFAULT_TIMESTAMP_PATTERN = "%Y-%m-%dT%H:%M:%S%z";
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PageBuilder pageBuilder;
     private final PluginTask pluginTask;
     private final KintoneAccessor accessor;
@@ -41,6 +44,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
             }
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid string column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }
@@ -53,6 +57,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
             pageBuilder.setBoolean(column, Boolean.parseBoolean(data));
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid boolean column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }
@@ -65,6 +70,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
             pageBuilder.setLong(column, Long.parseLong(data));
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid long column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }
@@ -77,6 +83,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
             pageBuilder.setDouble(column, Double.parseDouble(data));
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid double column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }
@@ -95,11 +102,12 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
                     break;
                 }
             }
-            final TimestampFormatter formatter = TimestampFormatter.builder(pattern).build();
+            final TimestampFormatter formatter = TimestampFormatter.builder("ruby:" + pattern).build();
             Instant instant = formatter.parse(accessor.get(column.getName()));
             pageBuilder.setTimestamp(column, Timestamp.ofInstant(instant));
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid timestamp column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }
@@ -117,6 +125,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
             }
         }
         catch (Exception e) {
+            logger.warn(String.format("Invalid json column: %s", column.getName()), e);
             pageBuilder.setNull(column);
         }
     }

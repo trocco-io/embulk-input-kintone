@@ -5,6 +5,7 @@ import com.kintone.client.model.FileBody;
 import com.kintone.client.model.Group;
 import com.kintone.client.model.Organization;
 import com.kintone.client.model.User;
+import com.kintone.client.model.record.FieldType;
 import com.kintone.client.model.record.Record;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class KintoneAccessor
 
     private String getAsString(final String fieldCode)
     {
-        switch (record.getFieldType(fieldCode)) {
+        switch (getFieldType(fieldCode)) {
             case USER_SELECT:
                 return toString(record.getUserSelectFieldValue(fieldCode), User::getCode);
             case ORGANIZATION_SELECT:
@@ -78,11 +79,11 @@ public class KintoneAccessor
             case TIME:
                 return String.valueOf(record.getTimeFieldValue(fieldCode));
             case DATETIME:
-                return String.valueOf(record.getDateTimeFieldValue(fieldCode));
+                return String.valueOf(record.getDateTimeFieldValue(fieldCode).toInstant());
             case CREATED_TIME:
-                return String.valueOf(record.getCreatedTimeFieldValue());
+                return String.valueOf(record.getCreatedTimeFieldValue().toInstant());
             case UPDATED_TIME:
-                return String.valueOf(record.getUpdatedTimeFieldValue());
+                return String.valueOf(record.getUpdatedTimeFieldValue().toInstant());
             case __ID__:
                 return String.valueOf(record.getId());
             case __REVISION__:
@@ -96,6 +97,18 @@ public class KintoneAccessor
             default:
                 return "";
         }
+    }
+
+    private FieldType getFieldType(final String fieldCode)
+    {
+        final FieldType fieldType = record.getFieldType(fieldCode);
+        if (fieldType == null && "$id".equals(fieldCode)) {
+            return FieldType.__ID__;
+        }
+        if (fieldType == null && "$revision".equals(fieldCode)) {
+            return FieldType.__REVISION__;
+        }
+        return fieldType;
     }
 
     private String toString(List<String> list)
