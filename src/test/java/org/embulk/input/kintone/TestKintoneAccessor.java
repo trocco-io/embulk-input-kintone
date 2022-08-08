@@ -127,7 +127,7 @@ public class TestKintoneAccessor
         String groupSelect = "code3\ncode4";
         String orgSelect = "code5\ncode6";
         String assigneeSelect = "code7\ncode8";
-        String subTableValue = "[{\"fields\":{\"sample field1\":{\"value\":\"sample_text1\"}},\"id\":1}]";
+        String subTableValue = "[{\"id\":1,\"value\":{\"sample field1\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"sample_text1\"}}}]";
         assertEquals(testRecord.getSingleLineTextFieldValue("文字列__1行"), accessor.get("文字列__1行"));
         assertEquals("1", accessor.get("数値"));
         assertEquals(testRecord.getMultiLineTextFieldValue("文字列__複数行"), accessor.get("文字列__複数行"));
@@ -156,5 +156,119 @@ public class TestKintoneAccessor
         assertEquals("sample_file1\nsample_file2", accessor.get("添付ファイル"));
         assertEquals("sample_category1\nsample_category2", accessor.get("カテゴリー"));
         assertEquals("sample_status", accessor.get("ステータス"));
+    }
+
+    @Test
+    public void testFields()
+    {
+        final KintoneAccessor accessor = new KintoneAccessor(record());
+        assertEquals("APPCODE-1", accessor.get("レコード番号"));
+        assertEquals("1", accessor.get("$id"));
+        assertEquals("5", accessor.get("$revision"));
+        assertEquals("sato", accessor.get("作成者"));
+        assertEquals("2021-01-11T11:11:11Z", accessor.get("作成日時"));
+        assertEquals("guest/kato@cybozu.com", accessor.get("更新者"));
+        assertEquals("2022-02-22T22:22:22Z", accessor.get("更新日時"));
+        assertEquals("テストです。", accessor.get("文字列（1行）"));
+        assertEquals("テスト\nです。", accessor.get("文字列（複数行）"));
+        assertEquals("<a href=\"https://www.cybozu.com\">サイボウズ</a>", accessor.get("リッチエディター"));
+        assertEquals("123", accessor.get("数値"));
+        assertEquals("456", accessor.get("計算"));
+        assertEquals("選択肢1\n選択肢2", accessor.get("チェックボックス"));
+        assertEquals("選択肢3", accessor.get("ラジオボタン"));
+        assertEquals("選択肢4\n選択肢5", accessor.get("複数選択"));
+        assertEquals("選択肢6", accessor.get("ドロップダウン"));
+        assertEquals("guest/sato@cybozu.com\nkato", accessor.get("ユーザー選択"));
+        assertEquals("kaihatsu\njinji", accessor.get("組織選択"));
+        assertEquals("project_manager\nteam_leader", accessor.get("グループ選択"));
+        assertEquals("2012-01-11", accessor.get("日付"));
+        assertEquals("11:30", accessor.get("時刻"));
+        assertEquals("2012-01-11T11:30:00Z", accessor.get("日時"));
+        assertEquals("https://cybozu.co.jp/", accessor.get("リンク"));
+        assertEquals("201202061155587E339F9067544F1A92C743460E3D12B3297\n201202061155583C763E30196F419E83E91D2E4A03746C273", accessor.get("添付ファイル"));
+        assertEquals("[{\"id\":48290,\"value\":{\"リッチエディター\":{\"type\":\"RICH_TEXT\",\"value\":\"\\u003ca href\\u003d\\\"https://www.cybozu.com\\\"\\u003eサイボウズ\\u003c/a\\u003e\"},\"グループ選択\":{\"type\":\"GROUP_SELECT\",\"value\":[{\"name\":\"プロジェクトマネージャー\",\"code\":\"project_manager\"},{\"name\":\"チームリーダー\",\"code\":\"team_leader\"}]},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"テストです。\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\",\"value\":\"選択肢3\"},\"ドロップダウン\":{\"type\":\"DROP_DOWN\",\"value\":\"選択肢6\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{\"name\":\"開発部\",\"code\":\"kaihatsu\"},{\"name\":\"人事部\",\"code\":\"jinji\"}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\",\"value\":[{\"name\":\"Noboru Sato\",\"code\":\"guest/sato@cybozu.com\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]},\"日時\":{\"type\":\"DATETIME\",\"value\":\"2012-01-11T11:30:00Z\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\",\"value\":\"テスト\\nです。\"},\"時刻\":{\"type\":\"TIME\",\"value\":\"11:30\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\",\"value\":[\"選択肢1\",\"選択肢2\"]},\"複数選択\":{\"type\":\"MULTI_SELECT\",\"value\":[\"選択肢4\",\"選択肢5\"]},\"数値\":{\"type\":\"NUMBER\",\"value\":\"123\"},\"添付ファイル\":{\"type\":\"FILE\",\"value\":[{\"contentType\":\"text/plain\",\"fileKey\":\"201202061155587E339F9067544F1A92C743460E3D12B3297\",\"name\":\"17to20_VerupLog (1).txt\",\"size\":\"23175\"},{\"contentType\":\"application/json\",\"fileKey\":\"201202061155583C763E30196F419E83E91D2E4A03746C273\",\"name\":\"17to20_VerupLog.txt\",\"size\":\"23176\"}]},\"リンク\":{\"type\":\"LINK\",\"value\":\"https://cybozu.co.jp/\"},\"計算\":{\"type\":\"CALC\",\"value\":\"456\"},\"日付\":{\"type\":\"DATE\",\"value\":\"2012-01-11\"}}},{\"id\":48291,\"value\":{\"リッチエディター\":{\"type\":\"RICH_TEXT\",\"value\":\"\\u003ca href\\u003d\\\"https://www.cybozu.com\\\"\\u003eサイボウズ\\u003c/a\\u003e\"},\"グループ選択\":{\"type\":\"GROUP_SELECT\",\"value\":[{\"name\":\"プロジェクトマネージャー\",\"code\":\"project_manager\"},{\"name\":\"チームリーダー\",\"code\":\"team_leader\"}]},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"テストです。\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\",\"value\":\"選択肢3\"},\"ドロップダウン\":{\"type\":\"DROP_DOWN\",\"value\":\"選択肢6\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{\"name\":\"開発部\",\"code\":\"kaihatsu\"},{\"name\":\"人事部\",\"code\":\"jinji\"}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\",\"value\":[{\"name\":\"Noboru Sato\",\"code\":\"guest/sato@cybozu.com\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]},\"日時\":{\"type\":\"DATETIME\",\"value\":\"2012-01-11T11:30:00Z\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\",\"value\":\"テスト\\nです。\"},\"時刻\":{\"type\":\"TIME\",\"value\":\"11:30\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\",\"value\":[\"選択肢1\",\"選択肢2\"]},\"複数選択\":{\"type\":\"MULTI_SELECT\",\"value\":[\"選択肢4\",\"選択肢5\"]},\"数値\":{\"type\":\"NUMBER\",\"value\":\"123\"},\"添付ファイル\":{\"type\":\"FILE\",\"value\":[{\"contentType\":\"text/plain\",\"fileKey\":\"201202061155587E339F9067544F1A92C743460E3D12B3297\",\"name\":\"17to20_VerupLog (1).txt\",\"size\":\"23175\"},{\"contentType\":\"application/json\",\"fileKey\":\"201202061155583C763E30196F419E83E91D2E4A03746C273\",\"name\":\"17to20_VerupLog.txt\",\"size\":\"23176\"}]},\"リンク\":{\"type\":\"LINK\",\"value\":\"https://cybozu.co.jp/\"},\"計算\":{\"type\":\"CALC\",\"value\":\"456\"},\"日付\":{\"type\":\"DATE\",\"value\":\"2012-01-11\"}}}]", accessor.get("テーブル"));
+        assertEquals("category1\ncategory2", accessor.get("カテゴリー"));
+        assertEquals("未処理", accessor.get("ステータス"));
+        assertEquals("sato\nkato", accessor.get("作業者"));
+    }
+
+    private Record record()
+    {
+        final Record record = new Record(1L, 5L);
+        record.putField("レコード番号", new RecordNumberFieldValue("APPCODE-1"));
+        record.putField("作成者", new CreatorFieldValue(user("sato", "Noboru Sato")));
+        record.putField("作成日時", new CreatedTimeFieldValue(ZonedDateTime.parse("2021-01-11T11:11:11Z")));
+        record.putField("更新者", new ModifierFieldValue(user("guest/kato@cybozu.com", "Misaki Kato")));
+        record.putField("更新日時", new UpdatedTimeFieldValue(ZonedDateTime.parse("2022-02-22T22:22:22Z")));
+        record.putField("文字列（1行）", new SingleLineTextFieldValue("テストです。"));
+        record.putField("文字列（複数行）", new MultiLineTextFieldValue("テスト\nです。"));
+        record.putField("リッチエディター", new RichTextFieldValue("<a href=\"https://www.cybozu.com\">サイボウズ</a>"));
+        record.putField("数値", new NumberFieldValue(new BigDecimal("123")));
+        record.putField("計算", new CalcFieldValue(new BigDecimal("456")));
+        record.putField("チェックボックス", new CheckBoxFieldValue("選択肢1", "選択肢2"));
+        record.putField("ラジオボタン", new RadioButtonFieldValue("選択肢3"));
+        record.putField("複数選択", new MultiSelectFieldValue("選択肢4", "選択肢5"));
+        record.putField("ドロップダウン", new DropDownFieldValue("選択肢6"));
+        record.putField("ユーザー選択", new UserSelectFieldValue(user("guest/sato@cybozu.com", "Noboru Sato"), user("kato", "Misaki Kato")));
+        record.putField("組織選択", new OrganizationSelectFieldValue(organization("kaihatsu", "開発部"), organization("jinji", "人事部")));
+        record.putField("グループ選択", new GroupSelectFieldValue(group("project_manager", "プロジェクトマネージャー"), group("team_leader", "チームリーダー")));
+        record.putField("日付", new DateFieldValue(LocalDate.parse("2012-01-11")));
+        record.putField("時刻", new TimeFieldValue(LocalTime.parse("11:30")));
+        record.putField("日時", new DateTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
+        record.putField("リンク", new LinkFieldValue("https://cybozu.co.jp/"));
+        record.putField("添付ファイル", new FileFieldValue(file("text/plain", "201202061155587E339F9067544F1A92C743460E3D12B3297", "17to20_VerupLog (1).txt", "23175"), file("application/json", "201202061155583C763E30196F419E83E91D2E4A03746C273", "17to20_VerupLog.txt", "23176")));
+        record.putField("テーブル", new SubtableFieldValue(tableRow(48290L), tableRow(48291L)));
+        record.putField("カテゴリー", new CategoryFieldValue("category1", "category2"));
+        record.putField("ステータス", new StatusFieldValue("未処理"));
+        record.putField("作業者", new StatusAssigneeFieldValue(user("sato", "Noboru Sato"), user("kato", "Misaki Kato")));
+        return record;
+    }
+
+    private TableRow tableRow(final Long id)
+    {
+        final TableRow tableRow = new TableRow(id);
+        tableRow.putField("文字列（1行）", new SingleLineTextFieldValue("テストです。"));
+        tableRow.putField("文字列（複数行）", new MultiLineTextFieldValue("テスト\nです。"));
+        tableRow.putField("リッチエディター", new RichTextFieldValue("<a href=\"https://www.cybozu.com\">サイボウズ</a>"));
+        tableRow.putField("数値", new NumberFieldValue(new BigDecimal("123")));
+        tableRow.putField("計算", new CalcFieldValue(new BigDecimal("456")));
+        tableRow.putField("チェックボックス", new CheckBoxFieldValue("選択肢1", "選択肢2"));
+        tableRow.putField("ラジオボタン", new RadioButtonFieldValue("選択肢3"));
+        tableRow.putField("複数選択", new MultiSelectFieldValue("選択肢4", "選択肢5"));
+        tableRow.putField("ドロップダウン", new DropDownFieldValue("選択肢6"));
+        tableRow.putField("ユーザー選択", new UserSelectFieldValue(user("guest/sato@cybozu.com", "Noboru Sato"), user("kato", "Misaki Kato")));
+        tableRow.putField("組織選択", new OrganizationSelectFieldValue(organization("kaihatsu", "開発部"), organization("jinji", "人事部")));
+        tableRow.putField("グループ選択", new GroupSelectFieldValue(group("project_manager", "プロジェクトマネージャー"), group("team_leader", "チームリーダー")));
+        tableRow.putField("日付", new DateFieldValue(LocalDate.parse("2012-01-11")));
+        tableRow.putField("時刻", new TimeFieldValue(LocalTime.parse("11:30")));
+        tableRow.putField("日時", new DateTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
+        tableRow.putField("リンク", new LinkFieldValue("https://cybozu.co.jp/"));
+        tableRow.putField("添付ファイル", new FileFieldValue(file("text/plain", "201202061155587E339F9067544F1A92C743460E3D12B3297", "17to20_VerupLog (1).txt", "23175"), file("application/json", "201202061155583C763E30196F419E83E91D2E4A03746C273", "17to20_VerupLog.txt", "23176")));
+        return tableRow;
+    }
+
+    private User user(final String code, final String name)
+    {
+        return new User(name, code);
+    }
+
+    private Organization organization(final String code, final String name)
+    {
+        return new Organization(name, code);
+    }
+
+    private Group group(final String code, final String name)
+    {
+        return new Group(name, code);
+    }
+
+    private FileBody file(final String contentType, final String fileKey, final String name, final String size)
+    {
+        final FileBody file = new FileBody();
+        file.setContentType(contentType);
+        file.setFileKey(fileKey);
+        file.setName(name);
+        file.setSize(Integer.valueOf(size));
+        return file;
     }
 }
