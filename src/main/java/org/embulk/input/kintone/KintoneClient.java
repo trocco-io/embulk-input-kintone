@@ -1,98 +1,115 @@
 package org.embulk.input.kintone;
 
-import com.cybozu.kintone.client.authentication.Auth;
-import com.cybozu.kintone.client.connection.Connection;
-import com.cybozu.kintone.client.exception.KintoneAPIException;
-import com.cybozu.kintone.client.model.cursor.CreateRecordCursorResponse;
-import com.cybozu.kintone.client.model.cursor.GetRecordCursorResponse;
-import com.cybozu.kintone.client.model.record.GetRecordsResponse;
-import com.cybozu.kintone.client.module.recordCursor.RecordCursor;
+import com.kintone.client.KintoneClientBuilder;
+import com.kintone.client.RecordClient;
+import com.kintone.client.api.record.CreateCursorRequest;
+import com.kintone.client.api.record.CreateCursorResponseBody;
+import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
+import com.kintone.client.exception.KintoneApiRuntimeException;
 import org.embulk.config.ConfigException;
-import org.embulk.spi.ColumnConfig;
+import org.embulk.util.config.units.ColumnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-public class KintoneClient {
+public class KintoneClient
+{
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
-    private Auth kintoneAuth;
-    private RecordCursor kintoneRecordManager;
-    private Connection con;
+    private RecordClient recordClient;
 
-    public KintoneClient(){
-        this.kintoneAuth = new Auth();
+    public KintoneClient() throws ConfigException
+    {
     }
 
-    public void validateAuth(final PluginTask task) throws ConfigException{
+    @SuppressWarnings("StatementWithEmptyBody")
+    public void validateAuth(final PluginTask task) throws ConfigException
+    {
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
-            return;
-        } else if (task.getToken().isPresent()) {
-            return;
-        } else {
+            // NOP
+        }
+        else if (task.getToken().isPresent()) {
+            // NOP
+        }
+        else {
             throw new ConfigException("Username and password or token must be provided");
         }
     }
 
-    public void connect(final PluginTask task) {
+    public void connect(final PluginTask task)
+    {
+        KintoneClientBuilder builder = KintoneClientBuilder.create(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
-            this.kintoneAuth.setPasswordAuth(task.getUsername().get(), task.getPassword().get());
-        } else if (task.getToken().isPresent()) {
-            this.kintoneAuth.setApiToken(task.getToken().get());
+            builder.authByPassword(task.getUsername().get(), task.getPassword().get());
+        }
+        else if (task.getToken().isPresent()) {
+            builder.authByApiToken(task.getToken().get());
         }
 
         if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
-            this.kintoneAuth.setBasicAuth(task.getBasicAuthUsername().get(),
-                    task.getBasicAuthPassword().get());
+            builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
         }
 
         if (task.getGuestSpaceId().isPresent()) {
-            this.con = new Connection(task.getDomain(), this.kintoneAuth, task.getGuestSpaceId().or(-1));
-        } else {
-            this.con = new Connection(task.getDomain(), this.kintoneAuth);
+            builder.setGuestSpaceId(task.getGuestSpaceId().orElse(-1));
         }
-        this.kintoneRecordManager = new RecordCursor(con);
+
+        com.kintone.client.KintoneClient client = builder.build();
+        this.recordClient = client.record();
     }
 
-
-    public GetRecordsResponse getResponse(final PluginTask task) {
-        CreateRecordCursorResponse cursor = this.createCursor(task);
+    public GetRecordsByCursorResponseBody getResponse(final PluginTask task)
+    {
+        CreateCursorResponseBody cursor = this.createCursor(task);
         try {
-            return this.kintoneRecordManager.getAllRecords(cursor.getId());
-        }catch (KintoneAPIException e){
+            return this.recordClient.getRecordsByCursor(cursor.getId());
+        }
+        catch (KintoneApiRuntimeException e) {
+            this.logger.error(e.toString());
+            this.deleteCursor(cursor.getId());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public GetRecordsByCursorResponseBody getRecordsByCursor(String cursor)
+    {
+        try {
+            return this.recordClient.getRecordsByCursor(cursor);
+        }
+        catch (KintoneApiRuntimeException e) {
+            this.logger.error(e.toString());
             this.deleteCursor(cursor);
             throw new RuntimeException(e);
         }
     }
 
-    public GetRecordCursorResponse getRecordsByCursor(CreateRecordCursorResponse cursor){
-        try {
-            return this.kintoneRecordManager.getRecords(cursor.getId());
-        }catch (KintoneAPIException e){
-            this.deleteCursor(cursor);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public CreateRecordCursorResponse createCursor(final PluginTask task){
+    public CreateCursorResponseBody createCursor(final PluginTask task)
+    {
         ArrayList<String> fields = new ArrayList<>();
-        for (ColumnConfig c : task.getFields().getColumns()
-        ) {
+        for (ColumnConfig c : task.getFields().getColumns()) {
             fields.add(c.getName());
         }
-
-        try{
-            return this.kintoneRecordManager.createCursor(task.getAppId(),  fields, task.getQuery().or(""), FETCH_SIZE);
-        }catch (KintoneAPIException e) {
+        CreateCursorRequest request = new CreateCursorRequest();
+        request.setApp((long) task.getAppId());
+        request.setFields(fields);
+        request.setQuery(task.getQuery().orElse(""));
+        request.setSize((long) FETCH_SIZE);
+        try {
+            return this.recordClient.createCursor(request);
+        }
+        catch (KintoneApiRuntimeException e) {
+            this.logger.error(e.toString());
             throw new RuntimeException(e);
         }
     }
 
-    public void deleteCursor(CreateRecordCursorResponse cursor) {
+    public void deleteCursor(String cursor)
+    {
         try {
-            this.kintoneRecordManager.deleteCursor(cursor.getId());
-        }catch (KintoneAPIException e){
+            this.recordClient.deleteCursor(cursor);
+        }
+        catch (KintoneApiRuntimeException e) {
             this.logger.error(e.toString());
         }
     }

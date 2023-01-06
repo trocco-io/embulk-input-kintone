@@ -1,45 +1,47 @@
 plugins {
-    id "com.jfrog.bintray" version "1.1"
-    id "com.github.jruby-gradle.base" version "1.5.0"
     id "java"
     id "checkstyle"
-}
-import com.github.jrubygradle.JRubyExec
-repositories {
-    mavenCentral()
-    jcenter()
-}
-configurations {
-    provided
+    id "maven-publish"
+    id "org.embulk.embulk-plugins" version "0.4.2"
+    id "com.github.johnrengelman.shadow" version "6.1.0" apply false
 }
 
-version = "0.1.5"
+repositories {
+    mavenCentral()
+}
+
+group = "io.trocco"
+version = "0.1.6"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+def embulkVersion = "0.10.36"
+
 dependencies {
-    compile  "org.embulk:embulk-core:0.9.12"
-    provided "org.embulk:embulk-core:0.9.12"
-    compile group: 'com.cybozu.kintone', name: 'kintone-sdk', version: '0.4.0'
+    compileOnly "org.embulk:embulk-api:$embulkVersion"
+    compileOnly "org.embulk:embulk-spi:$embulkVersion"
 
-    testCompile "junit:junit:4.+"
-    testCompile 'org.embulk:embulk-standards:0.9.12'
-    testCompile 'org.embulk:embulk-test:0.9.12'
-    testCompile "org.mockito:mockito-core:1.+"
-    testCompile "org.embulk:embulk-core:0.9.12:tests"
-}
+    compile "org.embulk:embulk-util-config:0.3.1"
+    compile "org.embulk:embulk-util-json:0.1.1"
+    compile "org.embulk:embulk-util-timestamp:0.2.1"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.6.7" // Need to specify explicitly
+    compile "com.google.code.gson:gson:2.9.0"
+    compile "com.google.guava:guava:31.1-jre"
 
-task classpath(type: Copy, dependsOn: ["jar"]) {
-    doFirst { file("classpath").deleteDir() }
-    from (configurations.runtime - configurations.provided + files(jar.archivePath))
-    into "classpath"
+    compile project(path: ":shadow-kintone-java-client", configuration: "shadow")
+
+    testCompile "org.embulk:embulk-api:$embulkVersion"
+    testCompile "org.embulk:embulk-spi:$embulkVersion"
+    testCompile "org.embulk:embulk-junit4:$embulkVersion"
+    testCompile "org.embulk:embulk-core:$embulkVersion"
+    testCompile "org.embulk:embulk-deps:$embulkVersion"
+    testCompile "org.mockito:mockito-core:4.6.1"
 }
-clean { delete "classpath" }
 
 checkstyle {
     configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
-    toolVersion = '6.14.1'
+    toolVersion = "6.14.1"
 }
 checkstyleMain {
     configFile = file("${project.rootDir}/config/checkstyle/default.xml")
@@ -54,50 +56,21 @@ task checkstyle(type: Checkstyle) {
     source = sourceSets.main.allJava + sourceSets.test.allJava
 }
 
-task gem(type: JRubyExec, dependsOn: ["gemspec", "classpath"]) {
-    jrubyArgs "-S"
-    script "gem"
-    scriptArgs "build", "${project.name}.gemspec"
-    doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }
+// Workaround for IntelliJ issue
+// https://youtrack.jetbrains.com/issue/IDEA-163411
+// https://github.com/johnrengelman/shadow/issues/264#issuecomment-814402906
+compileJava.dependsOn(tasks.getByPath(":shadow-kintone-java-client:publishToMavenLocal"))
+
+embulkPlugin {
+    mainClass = "org.embulk.input.kintone.KintoneInputPlugin"
+    category = "input"
+    type = "kintone"
 }
 
-task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
-    jrubyArgs "-S"
-    script "gem"
-    scriptArgs "push", "pkg/${project.name}-${project.version}.gem"
+gem {
+    authors = [ "giwa" ]
+    email = [ "ugw.gi.world@gmail.com" ]
+    summary = "Kintone input plugin for Embulk"
+    homepage = "https://github.com/trocco-io/embulk-input-kintone"
+    licenses = [ "MIT" ]
 }
-
-task "package"(dependsOn: ["gemspec", "classpath"]) {
-    doLast {
-        println "> Build succeeded."
-        println "> You can run embulk with '-L ${file(".").absolutePath}' argument."
-    }
-}
-
-task gemspec {
-    ext.gemspecFile = file("${project.name}.gemspec")
-    inputs.file "build.gradle"
-    outputs.file gemspecFile
-    doLast { gemspecFile.write($/
-Gem::Specification.new do |spec|
-  spec.name          = "${project.name}"
-  spec.version       = "${project.version}"
-  spec.authors       = ["giwa"]
-  spec.summary       = %[Kintone input plugin for Embulk]
-  spec.description   = %[Loads records from Kintone.]
-  spec.email         = ["ugw.gi.world@gmail.com"]
-  spec.licenses      = ["MIT"]
-  spec.homepage      = "https://github.com/trocco-io/embulk-input-kintone"
-
-  spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
-  spec.test_files    = spec.files.grep(%r"^(test|spec)/")
-  spec.require_paths = ["lib"]
-
-  #spec.add_dependency 'YOUR_GEM_DEPENDENCY', ['~> YOUR_GEM_DEPENDENCY_VERSION']
-  spec.add_development_dependency 'bundler', ['~> 1.0']
-  spec.add_development_dependency 'rake', ['~> 12.0']
-end
-/$)
-    }
-}
-clean { delete "${project.name}.gemspec" }

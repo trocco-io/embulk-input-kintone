@@ -1,59 +1,304 @@
 package org.embulk.input.kintone;
 
-import com.cybozu.kintone.client.model.file.FileModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.cybozu.kintone.client.model.record.field.FieldValue;
-import com.cybozu.kintone.client.model.member.Member;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.kintone.client.model.FileBody;
+import com.kintone.client.model.Group;
+import com.kintone.client.model.Organization;
+import com.kintone.client.model.User;
+import com.kintone.client.model.record.CalcFieldValue;
+import com.kintone.client.model.record.CheckBoxFieldValue;
+import com.kintone.client.model.record.DateFieldValue;
+import com.kintone.client.model.record.DateTimeFieldValue;
+import com.kintone.client.model.record.DropDownFieldValue;
+import com.kintone.client.model.record.FieldType;
+import com.kintone.client.model.record.FieldValue;
+import com.kintone.client.model.record.FileFieldValue;
+import com.kintone.client.model.record.GroupSelectFieldValue;
+import com.kintone.client.model.record.LinkFieldValue;
+import com.kintone.client.model.record.MultiLineTextFieldValue;
+import com.kintone.client.model.record.MultiSelectFieldValue;
+import com.kintone.client.model.record.NumberFieldValue;
+import com.kintone.client.model.record.OrganizationSelectFieldValue;
+import com.kintone.client.model.record.RadioButtonFieldValue;
+import com.kintone.client.model.record.Record;
+import com.kintone.client.model.record.RichTextFieldValue;
+import com.kintone.client.model.record.SingleLineTextFieldValue;
+import com.kintone.client.model.record.TableRow;
+import com.kintone.client.model.record.TimeFieldValue;
+import com.kintone.client.model.record.UserSelectFieldValue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class KintoneAccessor {
-    private final Logger logger = LoggerFactory.getLogger(KintoneAccessor.class);
-    private final Gson gson = new Gson();
-
-    private final HashMap<String, FieldValue> record;
+public class KintoneAccessor
+{
+    private final Record record;
     private final String delimiter = "\n";
+    private final Gson gson = createGson();
 
-    public KintoneAccessor(final HashMap<String, FieldValue> record) {
+    public KintoneAccessor(final Record record)
+    {
         this.record = record;
     }
 
-    public String get(String name) {
-        switch (this.record.get(name).getType()) {
-            case USER_SELECT:
-            case ORGANIZATION_SELECT:
-            case GROUP_SELECT:
-            case STATUS_ASSIGNEE:
-                ArrayList<Member> members = (ArrayList<Member>) this.record.get(name).getValue();
-                return members.stream().map(Member::getCode)
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
-            case SUBTABLE:
-                Object subTableValueItem = this.record.get(name).getValue();
-                return gson.toJson(subTableValueItem);
+    public String get(final String name)
+    {
+        return getAsString(name);
+    }
+
+    private String getAsString(final String fieldCode)
+    {
+        switch (getFieldType(fieldCode)) {
+            case RECORD_NUMBER:
+                return record.getRecordNumberFieldValue();
+            case __ID__:
+                return String.valueOf(record.getId());
+            case __REVISION__:
+                return String.valueOf(record.getRevision());
             case CREATOR:
+                return record.getCreatorFieldValue().getCode();
+            case CREATED_TIME:
+                return String.valueOf(record.getCreatedTimeFieldValue().toInstant());
             case MODIFIER:
-                Member m = (Member) this.record.get(name).getValue();
-                return m.getCode();
-            case CHECK_BOX:
-            case MULTI_SELECT:
-            case CATEGORY:
-                ArrayList<String> selectedItemList = (ArrayList<String>) this.record.get(name).getValue();
-                return selectedItemList.stream()
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
-            case FILE:
-                ArrayList<FileModel> cbFileList = (ArrayList<FileModel>) this.record.get(name).getValue();
-                return cbFileList.stream().map(FileModel::getFileKey)
-                        .reduce((accum, value) -> accum + this.delimiter + value)
-                        .orElse("");
+                return record.getModifierFieldValue().getCode();
+            case UPDATED_TIME:
+                return String.valueOf(record.getUpdatedTimeFieldValue().toInstant());
+            case SINGLE_LINE_TEXT:
+                return record.getSingleLineTextFieldValue(fieldCode);
+            case MULTI_LINE_TEXT:
+                return record.getMultiLineTextFieldValue(fieldCode);
+            case RICH_TEXT:
+                return record.getRichTextFieldValue(fieldCode);
             case NUMBER:
-                return String.valueOf(this.record.get(name).getValue());
+                return String.valueOf(record.getNumberFieldValue(fieldCode));
+            case CALC:
+                return String.valueOf(record.getCalcFieldValue(fieldCode));
+            case CHECK_BOX:
+                return toString(record.getCheckBoxFieldValue(fieldCode));
+            case RADIO_BUTTON:
+                return record.getRadioButtonFieldValue(fieldCode);
+            case MULTI_SELECT:
+                return toString(record.getMultiSelectFieldValue(fieldCode));
+            case DROP_DOWN:
+                return record.getDropDownFieldValue(fieldCode);
+            case USER_SELECT:
+                return toString(record.getUserSelectFieldValue(fieldCode), User::getCode);
+            case ORGANIZATION_SELECT:
+                return toString(record.getOrganizationSelectFieldValue(fieldCode), Organization::getCode);
+            case GROUP_SELECT:
+                return toString(record.getGroupSelectFieldValue(fieldCode), Group::getCode);
+            case DATE:
+                return String.valueOf(record.getDateFieldValue(fieldCode));
+            case TIME:
+                return String.valueOf(record.getTimeFieldValue(fieldCode));
+            case DATETIME:
+                return String.valueOf(record.getDateTimeFieldValue(fieldCode).toInstant());
+            case LINK:
+                return record.getLinkFieldValue(fieldCode);
+            case FILE:
+                return toString(record.getFileFieldValue(fieldCode), FileBody::getFileKey);
+            case SUBTABLE:
+                return gson.toJson(record.getSubtableFieldValue(fieldCode));
+            case CATEGORY:
+                return toString(record.getCategoryFieldValue());
+            case STATUS:
+                return record.getStatusFieldValue();
+            case STATUS_ASSIGNEE:
+                return toString(record.getStatusAssigneeFieldValue(), User::getCode);
+            // 以下は値を取得できないもの
+            case REFERENCE_TABLE:
+            case LABEL:
+            case SPACER:
+            case HR:
+            case GROUP:
             default:
-                return (String) this.record.get(name).getValue();
+                return "";
         }
+    }
+
+    private FieldType getFieldType(final String fieldCode)
+    {
+        final FieldType fieldType = record.getFieldType(fieldCode);
+        if (fieldType == null && "$id".equals(fieldCode)) {
+            return FieldType.__ID__;
+        }
+        if (fieldType == null && "$revision".equals(fieldCode)) {
+            return FieldType.__REVISION__;
+        }
+        return fieldType;
+    }
+
+    private String toString(final List<String> list)
+    {
+        return list.stream()
+                .reduce((accum, value) -> accum + delimiter + value)
+                .orElse("");
+    }
+
+    private <T> String toString(final List<T> list, final Function<T, String> mapper)
+    {
+        return list.stream().map(mapper)
+                .reduce((accum, value) -> accum + delimiter + value)
+                .orElse("");
+    }
+
+    private Gson createGson()
+    {
+        final GsonBuilder builder = new GsonBuilder();
+        registerTypeAdapter(builder, TableRow.class, this::serialize);
+        registerTypeAdapter(builder, SingleLineTextFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, MultiLineTextFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, RichTextFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, NumberFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, CalcFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, CheckBoxFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, RadioButtonFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, MultiSelectFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, DropDownFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, UserSelectFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, OrganizationSelectFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, GroupSelectFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, DateFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, TimeFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, DateTimeFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, LinkFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, FileFieldValue.class, this::serialize);
+        registerTypeAdapter(builder, FileBody.class, this::serialize);
+        return builder.create();
+    }
+
+    private <T> void registerTypeAdapter(final GsonBuilder builder, final Class<T> type, final BiFunction<T, JsonSerializationContext, JsonElement> serialize)
+    {
+        builder.registerTypeAdapter(type, (JsonSerializer<T>) (src, typeOfSrc, context) -> serialize.apply(src, context));
+    }
+
+    private JsonElement serialize(final TableRow src, final JsonSerializationContext context)
+    {
+        final JsonObject object = new JsonObject();
+        object.addProperty("id", src.getId());
+        final JsonObject value = new JsonObject();
+        src.getFieldCodes().forEach((code) -> value.add(code, context.serialize(src.getFieldValue(code))));
+        object.add("value", value);
+        return object;
+    }
+
+    private JsonElement serialize(final SingleLineTextFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final MultiLineTextFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final RichTextFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final NumberFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final CalcFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final CheckBoxFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final RadioButtonFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final MultiSelectFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final DropDownFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final UserSelectFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final OrganizationSelectFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final GroupSelectFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final DateFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final TimeFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final DateTimeFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue().toInstant());
+    }
+
+    private JsonElement serialize(final LinkFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValue());
+    }
+
+    private JsonElement serialize(final FileFieldValue src, final JsonSerializationContext context)
+    {
+        return serialize(src, src.getValues(), context);
+    }
+
+    private JsonElement serialize(final FileBody src, final JsonSerializationContext context)
+    {
+        final JsonObject object = new JsonObject();
+        object.addProperty("contentType", src.getContentType());
+        object.addProperty("fileKey", src.getFileKey());
+        object.addProperty("name", src.getName());
+        object.addProperty("size", String.valueOf(src.getSize()));
+        return object;
+    }
+
+    private <T> JsonElement serialize(final FieldValue src, final T value)
+    {
+        final JsonObject object = new JsonObject();
+        object.addProperty("type", src.getType().name());
+        object.addProperty("value", String.valueOf(value));
+        return object;
+    }
+
+    private <T> JsonElement serialize(final FieldValue src, final List<T> values, final JsonSerializationContext context)
+    {
+        final JsonObject object = new JsonObject();
+        object.addProperty("type", src.getType().name());
+        final JsonArray array = new JsonArray();
+        values.forEach((value) -> array.add(context.serialize(value)));
+        object.add("value", array);
+        return object;
     }
 }
