@@ -1,6 +1,5 @@
 package org.embulk.input.kintone;
 
-import com.google.gson.JsonElement;
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
 import org.embulk.spi.PageBuilder;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 
 public class KintoneInputColumnVisitor implements ColumnVisitor
@@ -35,13 +33,12 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void stringColumn(Column column)
     {
         try {
-            String data = accessor.get(column.getName());
+            final String data = accessor.get(column.getName());
             if (Objects.isNull(data)) {
                 pageBuilder.setNull(column);
+                return;
             }
-            else {
-                pageBuilder.setString(column, data);
-            }
+            pageBuilder.setString(column, data);
         }
         catch (Exception e) {
             logger.warn(String.format("Invalid string column: %s", column.getName()), e);
@@ -53,7 +50,11 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void booleanColumn(Column column)
     {
         try {
-            String data = accessor.get(column.getName());
+            final String data = accessor.get(column.getName());
+            if (Objects.isNull(data)) {
+                pageBuilder.setNull(column);
+                return;
+            }
             pageBuilder.setBoolean(column, Boolean.parseBoolean(data));
         }
         catch (Exception e) {
@@ -66,7 +67,11 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void longColumn(Column column)
     {
         try {
-            String data = accessor.get(column.getName());
+            final String data = accessor.get(column.getName());
+            if (Objects.isNull(data)) {
+                pageBuilder.setNull(column);
+                return;
+            }
             pageBuilder.setLong(column, Long.parseLong(data));
         }
         catch (Exception e) {
@@ -79,7 +84,11 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void doubleColumn(Column column)
     {
         try {
-            String data = accessor.get(column.getName());
+            final String data = accessor.get(column.getName());
+            if (Objects.isNull(data)) {
+                pageBuilder.setNull(column);
+                return;
+            }
             pageBuilder.setDouble(column, Double.parseDouble(data));
         }
         catch (Exception e) {
@@ -92,9 +101,13 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void timestampColumn(Column column)
     {
         try {
-            List<ColumnConfig> columnConfigs = pluginTask.getFields().getColumns();
+            final String data = accessor.get(column.getName());
+            if (Objects.isNull(data)) {
+                pageBuilder.setNull(column);
+                return;
+            }
             String pattern = DEFAULT_TIMESTAMP_PATTERN;
-            for (ColumnConfig config : columnConfigs) {
+            for (ColumnConfig config : pluginTask.getFields().getColumns()) {
                 if (config.getName().equals(column.getName())
                         && config.getOption() != null
                         && config.getFormat() != null) {
@@ -103,7 +116,7 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
                 }
             }
             final TimestampFormatter formatter = TimestampFormatter.builder("ruby:" + pattern).build();
-            Instant instant = formatter.parse(accessor.get(column.getName()));
+            final Instant instant = formatter.parse(data);
             pageBuilder.setTimestamp(column, Timestamp.ofInstant(instant));
         }
         catch (Exception e) {
@@ -116,13 +129,20 @@ public class KintoneInputColumnVisitor implements ColumnVisitor
     public void jsonColumn(Column column)
     {
         try {
-            JsonElement data = com.google.gson.JsonParser.parseString(accessor.get(column.getName()));
-            if (data.isJsonNull() || data.isJsonPrimitive()) {
+            final String data = accessor.get(column.getName());
+            if (Objects.isNull(data)) {
                 pageBuilder.setNull(column);
+                return;
             }
-            else {
-                pageBuilder.setJson(column, new JsonParser().parse(data.toString()));
+            final com.google.gson.JsonElement gson = com.google.gson.JsonParser.parseString(data);
+            if (gson.isJsonNull()) {
+                pageBuilder.setNull(column);
+                return;
             }
+            if (gson.isJsonPrimitive()) {
+                throw new Exception(String.format("'%s' is json primitive", gson));
+            }
+            pageBuilder.setJson(column, new JsonParser().parse(gson.toString()));
         }
         catch (Exception e) {
             logger.warn(String.format("Invalid json column: %s", column.getName()), e);
