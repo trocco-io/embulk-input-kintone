@@ -153,7 +153,7 @@ public class KintoneAccessor
         return list.stream()
                 .filter(Objects::nonNull)
                 .reduce((accum, value) -> accum + delimiter + value)
-                .orElse(null);
+                .orElse("");
     }
 
     private <T> String toString(final List<T> list, final Function<T, String> mapper)
@@ -163,7 +163,7 @@ public class KintoneAccessor
                 .map(mapper)
                 .filter(Objects::nonNull)
                 .reduce((accum, value) -> accum + delimiter + value)
-                .orElse(null);
+                .orElse("");
     }
 
     private Gson createGson()

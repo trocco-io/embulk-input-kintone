@@ -266,37 +266,41 @@ public class TestKintoneAccessor
         assertNull(accessor.get("リッチエディター"));
         assertNull(accessor.get("数値"));
         assertNull(accessor.get("計算"));
-        assertNull(accessor.get("チェックボックス（空）"));
-        assertNull(accessor.get("チェックボックス（null要素）"));
+        assertEquals("", accessor.get("チェックボックス（空）"));
+        assertEquals("", accessor.get("チェックボックス（null要素）"));
         assertNull(accessor.get("ラジオボタン"));
-        assertNull(accessor.get("複数選択（空）"));
-        assertNull(accessor.get("複数選択（null要素）"));
+        assertEquals("", accessor.get("複数選択（空）"));
+        assertEquals("", accessor.get("複数選択（null要素）"));
         assertNull(accessor.get("ドロップダウン"));
-        assertNull(accessor.get("ユーザー選択（空）"));
-        assertNull(accessor.get("ユーザー選択（null要素）"));
-        assertNull(accessor.get("ユーザー選択（null項目）"));
-        assertNull(accessor.get("組織選択（空）"));
-        assertNull(accessor.get("組織選択（null要素）"));
-        assertNull(accessor.get("組織選択（null項目）"));
-        assertNull(accessor.get("グループ選択（空）"));
-        assertNull(accessor.get("グループ選択（null要素）"));
-        assertNull(accessor.get("グループ選択（null項目）"));
+        assertEquals("", accessor.get("ユーザー選択（空）"));
+        assertEquals("", accessor.get("ユーザー選択（null要素）"));
+        assertEquals("", accessor.get("ユーザー選択（null項目）"));
+        assertEquals("", accessor.get("組織選択（空）"));
+        assertEquals("", accessor.get("組織選択（null要素）"));
+        assertEquals("", accessor.get("組織選択（null項目）"));
+        assertEquals("", accessor.get("グループ選択（空）"));
+        assertEquals("", accessor.get("グループ選択（null要素）"));
+        assertEquals("", accessor.get("グループ選択（null項目）"));
         assertNull(accessor.get("日付"));
         assertNull(accessor.get("時刻"));
         assertNull(accessor.get("日時"));
         assertNull(accessor.get("リンク"));
-        assertNull(accessor.get("添付ファイル（空）"));
-        assertNull(accessor.get("添付ファイル（null要素）"));
-        assertNull(accessor.get("添付ファイル（null項目）"));
+        assertEquals("", accessor.get("添付ファイル（空）"));
+        assertEquals("", accessor.get("添付ファイル（null要素）"));
+        assertEquals("", accessor.get("添付ファイル（null項目）"));
         assertEquals("[]", accessor.get("テーブル（空）"));
         assertEquals("[null,null]", accessor.get("テーブル（null要素）"));
         assertEquals("[{\"value\":{\"添付ファイル（null要素）\":{\"type\":\"FILE\",\"value\":[null,null]},\"添付ファイル（null項目）\":{\"type\":\"FILE\",\"value\":[{},{}]},\"複数選択（空）\":{\"type\":\"MULTI_SELECT\",\"value\":[]},\"リッチエディター\":{\"type\":\"RICH_TEXT\"},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\"},\"ユーザー選択（null項目）\":{\"type\":\"USER_SELECT\",\"value\":[{},{}]},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\"},\"ユーザー選択（空）\":{\"type\":\"USER_SELECT\",\"value\":[]},\"チェックボックス（null要素）\":{\"type\":\"CHECK_BOX\",\"value\":[null,null]},\"組織選択（null項目）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{},{}]},\"計算\":{\"type\":\"CALC\"},\"日付\":{\"type\":\"DATE\"},\"組織選択（空）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[]},\"添付ファイル（空）\":{\"type\":\"FILE\",\"value\":[]},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\"},\"グループ選択（null項目）\":{\"type\":\"GROUP_SELECT\",\"value\":[{},{}]},\"複数選択（null要素）\":{\"type\":\"MULTI_SELECT\",\"value\":[null,null]},\"ドロップダウン\":{\"type\":\"DROP_DOWN\"},\"日時\":{\"type\":\"DATETIME\"},\"組織選択（null要素）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[null,null]},\"時刻\":{\"type\":\"TIME\"},\"グループ選択（空）\":{\"type\":\"GROUP_SELECT\",\"value\":[]},\"数値\":{\"type\":\"NUMBER\"},\"ユーザー選択（null要素）\":{\"type\":\"USER_SELECT\",\"value\":[null,null]},\"グループ選択（null要素）\":{\"type\":\"GROUP_SELECT\",\"value\":[null,null]},\"リンク\":{\"type\":\"LINK\"},\"チェックボックス（空）\":{\"type\":\"CHECK_BOX\",\"value\":[]}}},{\"value\":{\"添付ファイル（null要素）\":{\"type\":\"FILE\",\"value\":[null,null]},\"添付ファイル（null項目）\":{\"type\":\"FILE\",\"value\":[{},{}]},\"複数選択（空）\":{\"type\":\"MULTI_SELECT\",\"value\":[]},\"リッチエディター\":{\"type\":\"RICH_TEXT\"},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\"},\"ユーザー選択（null項目）\":{\"type\":\"USER_SELECT\",\"value\":[{},{}]},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\"},\"ユーザー選択（空）\":{\"type\":\"USER_SELECT\",\"value\":[]},\"チェックボックス（null要素）\":{\"type\":\"CHECK_BOX\",\"value\":[null,null]},\"組織選択（null項目）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{},{}]},\"計算\":{\"type\":\"CALC\"},\"日付\":{\"type\":\"DATE\"},\"組織選択（空）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[]},\"添付ファイル（空）\":{\"type\":\"FILE\",\"value\":[]},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\"},\"グループ選択（null項目）\":{\"type\":\"GROUP_SELECT\",\"value\":[{},{}]},\"複数選択（null要素）\":{\"type\":\"MULTI_SELECT\",\"value\":[null,null]},\"ドロップダウン\":{\"type\":\"DROP_DOWN\"},\"日時\":{\"type\":\"DATETIME\"},\"組織選択（null要素）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[null,null]},\"時刻\":{\"type\":\"TIME\"},\"グループ選択（空）\":{\"type\":\"GROUP_SELECT\",\"value\":[]},\"数値\":{\"type\":\"NUMBER\"},\"ユーザー選択（null要素）\":{\"type\":\"USER_SELECT\",\"value\":[null,null]},\"グループ選択（null要素）\":{\"type\":\"GROUP_SELECT\",\"value\":[null,null]},\"リンク\":{\"type\":\"LINK\"},\"チェックボックス（空）\":{\"type\":\"CHECK_BOX\",\"value\":[]}}}]", accessor.get("テーブル（null項目）"));
-        assertNull(accessor.get("カテゴリー（空）"));
-        assertNull(accessor.get("カテゴリー（null要素）"));
+        assertEquals("", accessor.get("カテゴリー（空）"));
+        /* ビルトインフィールドは 1 つしか追加できない
+        assertEquals("", accessor.get("カテゴリー（null要素）"));
+         */
         assertNull(accessor.get("ステータス"));
-        assertNull(accessor.get("作業者（空）"));
-        assertNull(accessor.get("作業者（null要素）"));
-        assertNull(accessor.get("作業者（null項目）"));
+        assertEquals("", accessor.get("作業者（空）"));
+        /* ビルトインフィールドは 1 つしか追加できない
+        assertEquals("", accessor.get("作業者（null要素）"));
+        assertEquals("", accessor.get("作業者（null項目）"));
+         */
     }
 
     private Record nullRecord()
@@ -340,11 +344,15 @@ public class TestKintoneAccessor
         record.putField("テーブル（null要素）", new SubtableFieldValue(null, null));
         record.putField("テーブル（null項目）", new SubtableFieldValue(nullTableRow(), nullTableRow()));
         record.putField("カテゴリー（空）", new CategoryFieldValue());
+        /* ビルトインフィールドは 1 つしか追加できない
         record.putField("カテゴリー（null要素）", new CategoryFieldValue(null, null));
+         */
         record.putField("ステータス", new StatusFieldValue(null));
         record.putField("作業者（空）", new StatusAssigneeFieldValue());
+        /* ビルトインフィールドは 1 つしか追加できない
         record.putField("作業者（null要素）", new StatusAssigneeFieldValue(null, null));
         record.putField("作業者（null項目）", new StatusAssigneeFieldValue(user(null, null), user(null, null)));
+         */
         return record;
     }
 
