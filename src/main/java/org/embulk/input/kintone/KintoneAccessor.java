@@ -33,7 +33,11 @@ import com.kintone.client.model.record.TableRow;
 import com.kintone.client.model.record.TimeFieldValue;
 import com.kintone.client.model.record.UserSelectFieldValue;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -55,21 +59,25 @@ public class KintoneAccessor
 
     private String getAsString(final String fieldCode)
     {
-        switch (getFieldType(fieldCode)) {
+        final FieldType fieldType = getFieldType(fieldCode);
+        if (fieldType == null) {
+            return null;
+        }
+        switch (fieldType) {
             case RECORD_NUMBER:
                 return record.getRecordNumberFieldValue();
             case __ID__:
-                return String.valueOf(record.getId());
+                return toString(record.getId(), Objects::toString);
             case __REVISION__:
-                return String.valueOf(record.getRevision());
+                return toString(record.getRevision(), Objects::toString);
             case CREATOR:
-                return record.getCreatorFieldValue().getCode();
+                return toString(record.getCreatorFieldValue(), User::getCode);
             case CREATED_TIME:
-                return String.valueOf(record.getCreatedTimeFieldValue().toInstant());
+                return toString(record.getCreatedTimeFieldValue(), (value) -> value.toInstant().toString());
             case MODIFIER:
-                return record.getModifierFieldValue().getCode();
+                return toString(record.getModifierFieldValue(), User::getCode);
             case UPDATED_TIME:
-                return String.valueOf(record.getUpdatedTimeFieldValue().toInstant());
+                return toString(record.getUpdatedTimeFieldValue(), (value) -> value.toInstant().toString());
             case SINGLE_LINE_TEXT:
                 return record.getSingleLineTextFieldValue(fieldCode);
             case MULTI_LINE_TEXT:
@@ -77,9 +85,9 @@ public class KintoneAccessor
             case RICH_TEXT:
                 return record.getRichTextFieldValue(fieldCode);
             case NUMBER:
-                return String.valueOf(record.getNumberFieldValue(fieldCode));
+                return toString(record.getNumberFieldValue(fieldCode), BigDecimal::toString);
             case CALC:
-                return String.valueOf(record.getCalcFieldValue(fieldCode));
+                return toString(record.getCalcFieldValue(fieldCode), BigDecimal::toString);
             case CHECK_BOX:
                 return toString(record.getCheckBoxFieldValue(fieldCode));
             case RADIO_BUTTON:
@@ -95,11 +103,11 @@ public class KintoneAccessor
             case GROUP_SELECT:
                 return toString(record.getGroupSelectFieldValue(fieldCode), Group::getCode);
             case DATE:
-                return String.valueOf(record.getDateFieldValue(fieldCode));
+                return toString(record.getDateFieldValue(fieldCode), LocalDate::toString);
             case TIME:
-                return String.valueOf(record.getTimeFieldValue(fieldCode));
+                return toString(record.getTimeFieldValue(fieldCode), LocalTime::toString);
             case DATETIME:
-                return String.valueOf(record.getDateTimeFieldValue(fieldCode).toInstant());
+                return toString(record.getDateTimeFieldValue(fieldCode), (value) -> value.toInstant().toString());
             case LINK:
                 return record.getLinkFieldValue(fieldCode);
             case FILE:
@@ -119,7 +127,7 @@ public class KintoneAccessor
             case HR:
             case GROUP:
             default:
-                return "";
+                return null;
         }
     }
 
@@ -135,16 +143,25 @@ public class KintoneAccessor
         return fieldType;
     }
 
+    private <T> String toString(final T value, final Function<T, String> mapper)
+    {
+        return value == null ? null : mapper.apply(value);
+    }
+
     private String toString(final List<String> list)
     {
         return list.stream()
+                .filter(Objects::nonNull)
                 .reduce((accum, value) -> accum + delimiter + value)
                 .orElse("");
     }
 
     private <T> String toString(final List<T> list, final Function<T, String> mapper)
     {
-        return list.stream().map(mapper)
+        return list.stream()
+                .filter(Objects::nonNull)
+                .map(mapper)
+                .filter(Objects::nonNull)
                 .reduce((accum, value) -> accum + delimiter + value)
                 .orElse("");
     }
@@ -261,7 +278,7 @@ public class KintoneAccessor
 
     private JsonElement serialize(final DateTimeFieldValue src, final JsonSerializationContext context)
     {
-        return serialize(src, src.getValue().toInstant());
+        return serialize(src, toString(src.getValue(), (value) -> value.toInstant().toString()));
     }
 
     private JsonElement serialize(final LinkFieldValue src, final JsonSerializationContext context)
@@ -280,7 +297,7 @@ public class KintoneAccessor
         object.addProperty("contentType", src.getContentType());
         object.addProperty("fileKey", src.getFileKey());
         object.addProperty("name", src.getName());
-        object.addProperty("size", String.valueOf(src.getSize()));
+        object.addProperty("size", toString(src.getSize(), Objects::toString));
         return object;
     }
 
@@ -288,7 +305,7 @@ public class KintoneAccessor
     {
         final JsonObject object = new JsonObject();
         object.addProperty("type", src.getType().name());
-        object.addProperty("value", String.valueOf(value));
+        object.addProperty("value", toString(value, T::toString));
         return object;
     }
 
