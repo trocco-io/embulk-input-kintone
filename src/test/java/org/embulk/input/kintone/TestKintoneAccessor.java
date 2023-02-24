@@ -204,6 +204,178 @@ public class TestKintoneAccessor {
         return subTableValueItem;
     }
 
+    @Test
+    public void testNullFields()
+    {
+        final KintoneAccessor accessor = new KintoneAccessor(nullRecord());
+        assertNull(accessor.get("レコード番号"));
+        assertNull(accessor.get("$id"));
+        assertNull(accessor.get("$revision"));
+        assertThrows(NullPointerException.class, () -> accessor.get("作成者"));
+        assertNull(accessor.get("作成者（null項目）"));
+        assertNull(accessor.get("作成日時"));
+        assertThrows(NullPointerException.class, () -> accessor.get("更新者"));
+        assertNull(accessor.get("更新者（null項目）"));
+        assertNull(accessor.get("更新日時"));
+        assertNull(accessor.get("文字列（1行）"));
+        assertNull(accessor.get("文字列（複数行）"));
+        assertNull(accessor.get("リッチエディター"));
+        assertEquals("null", accessor.get("数値"));
+        assertNull(accessor.get("計算"));
+        assertThrows(NullPointerException.class, () -> accessor.get("チェックボックス"));
+        assertEquals("", accessor.get("チェックボックス（空）"));
+        assertEquals("null\nnull", accessor.get("チェックボックス（null要素）"));
+        assertNull(accessor.get("ラジオボタン"));
+        assertThrows(NullPointerException.class, () -> accessor.get("複数選択"));
+        assertEquals("", accessor.get("複数選択（空）"));
+        assertEquals("null\nnull", accessor.get("複数選択（null要素）"));
+        assertNull(accessor.get("ドロップダウン"));
+        assertThrows(NullPointerException.class, () -> accessor.get("ユーザー選択"));
+        assertEquals("", accessor.get("ユーザー選択（空）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("ユーザー選択（null要素）"));
+        assertEquals("null\nnull", accessor.get("ユーザー選択（null項目）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("組織選択"));
+        assertEquals("", accessor.get("組織選択（空）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("組織選択（null要素）"));
+        assertEquals("null\nnull", accessor.get("組織選択（null項目）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("グループ選択"));
+        assertEquals("", accessor.get("グループ選択（空）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("グループ選択（null要素）"));
+        assertEquals("null\nnull", accessor.get("グループ選択（null項目）"));
+        assertNull(accessor.get("日付"));
+        assertNull(accessor.get("時刻"));
+        assertNull(accessor.get("日時"));
+        assertNull(accessor.get("リンク"));
+        assertThrows(NullPointerException.class, () -> accessor.get("添付ファイル"));
+        assertEquals("", accessor.get("添付ファイル（空）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("添付ファイル（null要素）"));
+        assertEquals("null\nnull", accessor.get("添付ファイル（null項目）"));
+        assertEquals("null", accessor.get("テーブル"));
+        assertEquals("[]", accessor.get("テーブル（空）"));
+        assertEquals("[null,null]", accessor.get("テーブル（null要素）"));
+        assertEquals("[{\"value\":{\"添付ファイル（null要素）\":{\"type\":\"FILE\",\"value\":[null,null]},\"添付ファイル（null項目）\":{\"type\":\"FILE\",\"value\":[{},{}]},\"複数選択（空）\":{\"type\":\"MULTI_SELECT\",\"value\":[]},\"リッチエディター\":{\"type\":\"RICH_TEXT\"},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\"},\"ユーザー選択（null項目）\":{\"type\":\"USER_SELECT\",\"value\":[{},{}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\"},\"ユーザー選択（空）\":{\"type\":\"USER_SELECT\",\"value\":[]},\"チェックボックス（null要素）\":{\"type\":\"CHECK_BOX\",\"value\":[null,null]},\"組織選択（null項目）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{},{}]},\"計算\":{\"type\":\"CALC\"},\"日付\":{\"type\":\"DATE\"},\"組織選択（空）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[]},\"添付ファイル（空）\":{\"type\":\"FILE\",\"value\":[]},\"グループ選択\":{\"type\":\"GROUP_SELECT\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\"},\"グループ選択（null項目）\":{\"type\":\"GROUP_SELECT\",\"value\":[{},{}]},\"複数選択（null要素）\":{\"type\":\"MULTI_SELECT\",\"value\":[null,null]},\"ドロップダウン\":{\"type\":\"DROP_DOWN\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\"},\"日時\":{\"type\":\"DATETIME\"},\"組織選択（null要素）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[null,null]},\"時刻\":{\"type\":\"TIME\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\"},\"グループ選択（空）\":{\"type\":\"GROUP_SELECT\",\"value\":[]},\"複数選択\":{\"type\":\"MULTI_SELECT\"},\"数値\":{\"type\":\"NUMBER\"},\"ユーザー選択（null要素）\":{\"type\":\"USER_SELECT\",\"value\":[null,null]},\"グループ選択（null要素）\":{\"type\":\"GROUP_SELECT\",\"value\":[null,null]},\"添付ファイル\":{\"type\":\"FILE\"},\"リンク\":{\"type\":\"LINK\"},\"チェックボックス（空）\":{\"type\":\"CHECK_BOX\",\"value\":[]}}},{\"value\":{\"添付ファイル（null要素）\":{\"type\":\"FILE\",\"value\":[null,null]},\"添付ファイル（null項目）\":{\"type\":\"FILE\",\"value\":[{},{}]},\"複数選択（空）\":{\"type\":\"MULTI_SELECT\",\"value\":[]},\"リッチエディター\":{\"type\":\"RICH_TEXT\"},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\"},\"ユーザー選択（null項目）\":{\"type\":\"USER_SELECT\",\"value\":[{},{}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\"},\"ユーザー選択（空）\":{\"type\":\"USER_SELECT\",\"value\":[]},\"チェックボックス（null要素）\":{\"type\":\"CHECK_BOX\",\"value\":[null,null]},\"組織選択（null項目）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{},{}]},\"計算\":{\"type\":\"CALC\"},\"日付\":{\"type\":\"DATE\"},\"組織選択（空）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[]},\"添付ファイル（空）\":{\"type\":\"FILE\",\"value\":[]},\"グループ選択\":{\"type\":\"GROUP_SELECT\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\"},\"グループ選択（null項目）\":{\"type\":\"GROUP_SELECT\",\"value\":[{},{}]},\"複数選択（null要素）\":{\"type\":\"MULTI_SELECT\",\"value\":[null,null]},\"ドロップダウン\":{\"type\":\"DROP_DOWN\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\"},\"日時\":{\"type\":\"DATETIME\"},\"組織選択（null要素）\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[null,null]},\"時刻\":{\"type\":\"TIME\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\"},\"グループ選択（空）\":{\"type\":\"GROUP_SELECT\",\"value\":[]},\"複数選択\":{\"type\":\"MULTI_SELECT\"},\"数値\":{\"type\":\"NUMBER\"},\"ユーザー選択（null要素）\":{\"type\":\"USER_SELECT\",\"value\":[null,null]},\"グループ選択（null要素）\":{\"type\":\"GROUP_SELECT\",\"value\":[null,null]},\"添付ファイル\":{\"type\":\"FILE\"},\"リンク\":{\"type\":\"LINK\"},\"チェックボックス（空）\":{\"type\":\"CHECK_BOX\",\"value\":[]}}}]", accessor.get("テーブル（null項目）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("カテゴリー"));
+        assertEquals("", accessor.get("カテゴリー（空）"));
+        assertEquals("null\nnull", accessor.get("カテゴリー（null要素）"));
+        assertNull(accessor.get("ステータス"));
+        assertThrows(NullPointerException.class, () -> accessor.get("作業者"));
+        assertEquals("", accessor.get("作業者（空）"));
+        assertThrows(NullPointerException.class, () -> accessor.get("作業者（null要素）"));
+        assertEquals("null\nnull", accessor.get("作業者（null項目）"));
+        assertNull(accessor.get("関連レコード一覧"));
+        assertNull(accessor.get("ラベル"));
+        assertNull(accessor.get("スペース"));
+        assertNull(accessor.get("罫線"));
+        assertNull(accessor.get("グループ"));
+    }
+
+    private HashMap<String, FieldValue> nullRecord()
+    {
+        final HashMap<String, FieldValue> record = new HashMap<>();
+        record.put("レコード番号", field(FieldType.RECORD_NUMBER, null));
+        record.put("$id", field(FieldType.__ID__, null));
+        record.put("$revision", field(FieldType.__REVISION__, null));
+        record.put("作成者", field(FieldType.CREATOR, null));
+        record.put("作成者（null項目）", field(FieldType.CREATOR, member(null, null)));
+        record.put("作成日時", field(FieldType.CREATED_TIME, null));
+        record.put("更新者", field(FieldType.MODIFIER, null));
+        record.put("更新者（null項目）", field(FieldType.MODIFIER, member(null, null)));
+        record.put("更新日時", field(FieldType.UPDATED_TIME, null));
+        record.put("文字列（1行）", field(FieldType.SINGLE_LINE_TEXT, null));
+        record.put("文字列（複数行）", field(FieldType.MULTI_LINE_TEXT, null));
+        record.put("リッチエディター", field(FieldType.RICH_TEXT, null));
+        record.put("数値", field(FieldType.NUMBER, null));
+        record.put("計算", field(FieldType.CALC, null));
+        record.put("チェックボックス", field(FieldType.CHECK_BOX, null));
+        record.put("チェックボックス（空）", field(FieldType.CHECK_BOX, arrayList()));
+        record.put("チェックボックス（null要素）", field(FieldType.CHECK_BOX, arrayList(null, null)));
+        record.put("ラジオボタン", field(FieldType.RADIO_BUTTON, null));
+        record.put("複数選択", field(FieldType.MULTI_SELECT, null));
+        record.put("複数選択（空）", field(FieldType.MULTI_SELECT, arrayList()));
+        record.put("複数選択（null要素）", field(FieldType.MULTI_SELECT, arrayList(null, null)));
+        record.put("ドロップダウン", field(FieldType.DROP_DOWN, null));
+        record.put("ユーザー選択", field(FieldType.USER_SELECT, null));
+        record.put("ユーザー選択（空）", field(FieldType.USER_SELECT, arrayList()));
+        record.put("ユーザー選択（null要素）", field(FieldType.USER_SELECT, arrayList(null, null)));
+        record.put("ユーザー選択（null項目）", field(FieldType.USER_SELECT, arrayList(member(null, null), member(null, null))));
+        record.put("組織選択", field(FieldType.ORGANIZATION_SELECT, null));
+        record.put("組織選択（空）", field(FieldType.ORGANIZATION_SELECT, arrayList()));
+        record.put("組織選択（null要素）", field(FieldType.ORGANIZATION_SELECT, arrayList(null, null)));
+        record.put("組織選択（null項目）", field(FieldType.ORGANIZATION_SELECT, arrayList(member(null, null), member(null, null))));
+        record.put("グループ選択", field(FieldType.GROUP_SELECT, null));
+        record.put("グループ選択（空）", field(FieldType.GROUP_SELECT, arrayList()));
+        record.put("グループ選択（null要素）", field(FieldType.GROUP_SELECT, arrayList(null, null)));
+        record.put("グループ選択（null項目）", field(FieldType.GROUP_SELECT, arrayList(member(null, null), member(null, null))));
+        record.put("日付", field(FieldType.DATE, null));
+        record.put("時刻", field(FieldType.TIME, null));
+        record.put("日時", field(FieldType.DATETIME, null));
+        record.put("リンク", field(FieldType.LINK, null));
+        record.put("添付ファイル", field(FieldType.FILE, null));
+        record.put("添付ファイル（空）", field(FieldType.FILE, arrayList()));
+        record.put("添付ファイル（null要素）", field(FieldType.FILE, arrayList(null, null)));
+        record.put("添付ファイル（null項目）", field(FieldType.FILE, arrayList(file(null, null, null, null), file(null, null, null, null))));
+        record.put("テーブル", field(FieldType.SUBTABLE, null));
+        record.put("テーブル（空）", field(FieldType.SUBTABLE, arrayList()));
+        record.put("テーブル（null要素）", field(FieldType.SUBTABLE, arrayList(null, null)));
+        record.put("テーブル（null項目）", field(FieldType.SUBTABLE, arrayList(nullSubTableValueItem(), nullSubTableValueItem())));
+        record.put("カテゴリー", field(FieldType.CATEGORY, null));
+        record.put("カテゴリー（空）", field(FieldType.CATEGORY, arrayList()));
+        record.put("カテゴリー（null要素）", field(FieldType.CATEGORY, arrayList(null, null)));
+        record.put("ステータス", field(FieldType.STATUS, null));
+        record.put("作業者", field(FieldType.STATUS_ASSIGNEE, null));
+        record.put("作業者（空）", field(FieldType.STATUS_ASSIGNEE, arrayList()));
+        record.put("作業者（null要素）", field(FieldType.STATUS_ASSIGNEE, arrayList(null, null)));
+        record.put("作業者（null項目）", field(FieldType.STATUS_ASSIGNEE, arrayList(member(null, null), member(null, null))));
+        record.put("関連レコード一覧", field(FieldType.REFERENCE_TABLE, null));
+        record.put("ラベル", field(FieldType.LABEL, null));
+        record.put("スペース", field(FieldType.SPACER, null));
+        record.put("罫線", field(FieldType.HR, null));
+        record.put("グループ", field(FieldType.GROUP, null));
+        return record;
+    }
+
+    private SubTableValueItem nullSubTableValueItem()
+    {
+        final SubTableValueItem subTableValueItem = new SubTableValueItem();
+        subTableValueItem.setID(null);
+        final HashMap<String, FieldValue> value = new HashMap<>();
+        value.put("文字列（1行）", field(FieldType.SINGLE_LINE_TEXT, null));
+        value.put("文字列（複数行）", field(FieldType.MULTI_LINE_TEXT, null));
+        value.put("リッチエディター", field(FieldType.RICH_TEXT, null));
+        value.put("数値", field(FieldType.NUMBER, null));
+        value.put("計算", field(FieldType.CALC, null));
+        value.put("チェックボックス", field(FieldType.CHECK_BOX, null));
+        value.put("チェックボックス（空）", field(FieldType.CHECK_BOX, arrayList()));
+        value.put("チェックボックス（null要素）", field(FieldType.CHECK_BOX, arrayList(null, null)));
+        value.put("ラジオボタン", field(FieldType.RADIO_BUTTON, null));
+        value.put("複数選択", field(FieldType.MULTI_SELECT, null));
+        value.put("複数選択（空）", field(FieldType.MULTI_SELECT, arrayList()));
+        value.put("複数選択（null要素）", field(FieldType.MULTI_SELECT, arrayList(null, null)));
+        value.put("ドロップダウン", field(FieldType.DROP_DOWN, null));
+        value.put("ユーザー選択", field(FieldType.USER_SELECT, null));
+        value.put("ユーザー選択（空）", field(FieldType.USER_SELECT, arrayList()));
+        value.put("ユーザー選択（null要素）", field(FieldType.USER_SELECT, arrayList(null, null)));
+        value.put("ユーザー選択（null項目）", field(FieldType.USER_SELECT, arrayList(member(null, null), member(null, null))));
+        value.put("組織選択", field(FieldType.ORGANIZATION_SELECT, null));
+        value.put("組織選択（空）", field(FieldType.ORGANIZATION_SELECT, arrayList()));
+        value.put("組織選択（null要素）", field(FieldType.ORGANIZATION_SELECT, arrayList(null, null)));
+        value.put("組織選択（null項目）", field(FieldType.ORGANIZATION_SELECT, arrayList(member(null, null), member(null, null))));
+        value.put("グループ選択", field(FieldType.GROUP_SELECT, null));
+        value.put("グループ選択（空）", field(FieldType.GROUP_SELECT, arrayList()));
+        value.put("グループ選択（null要素）", field(FieldType.GROUP_SELECT, arrayList(null, null)));
+        value.put("グループ選択（null項目）", field(FieldType.GROUP_SELECT, arrayList(member(null, null), member(null, null))));
+        value.put("日付", field(FieldType.DATE, null));
+        value.put("時刻", field(FieldType.TIME, null));
+        value.put("日時", field(FieldType.DATETIME, null));
+        value.put("リンク", field(FieldType.LINK, null));
+        value.put("添付ファイル", field(FieldType.FILE, null));
+        value.put("添付ファイル（空）", field(FieldType.FILE, arrayList()));
+        value.put("添付ファイル（null要素）", field(FieldType.FILE, arrayList(null, null)));
+        value.put("添付ファイル（null項目）", field(FieldType.FILE, arrayList(file(null, null, null, null), file(null, null, null, null))));
+        subTableValueItem.setValue(value);
+        return subTableValueItem;
+    }
+
     @SafeVarargs
     private final <T> ArrayList<T> arrayList(final T... a)
     {
