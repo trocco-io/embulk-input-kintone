@@ -81,7 +81,7 @@ public class TestKintoneInputPlugin
         PluginTask task = configMapper.map(config, PluginTask.class);
         Schema outputSchema =  task.getFields().toSchema();
         GetRecordsByCursorResponseBody response = createSampleData();
-        when(kintoneClient.getResponse(any(PluginTask.class))).thenReturn(response);
+        when(kintoneClient.getResponse(any(PluginTask.class), any(Schema.class))).thenReturn(response);
 
         ConfigDiff configDiff = kintoneInputPlugin.transaction(config, new Control());
 
