@@ -74,7 +74,6 @@ public class TestKintoneInputPlugin
             .registerPlugin(InputPlugin.class, "kintone", KintoneInputPlugin.class)
             .build();
 
-
     @Test
     public void testFailExpected()
     {
