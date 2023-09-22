@@ -36,6 +36,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -72,6 +73,12 @@ public class TestKintoneInputPlugin
     public TestingEmbulk embulk = TestingEmbulk.builder()
             .registerPlugin(InputPlugin.class, "kintone", KintoneInputPlugin.class)
             .build();
+
+    @Test
+    public void testFailExpected()
+    {
+        fail();
+    }
 
     // Comment out for now
     @Test
