@@ -3,7 +3,10 @@ package org.embulk.input.kintone;
 import com.google.common.annotations.VisibleForTesting;
 import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
+import com.kintone.client.model.app.field.FieldProperty;
+import com.kintone.client.model.record.FieldType;
 import com.kintone.client.model.record.Record;
+import com.kintone.client.model.record.TableRow;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.TaskReport;
@@ -13,6 +16,9 @@ import org.embulk.spi.InputPlugin;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
+import org.embulk.spi.Schema.Builder;
+import org.embulk.spi.type.Type;
+import org.embulk.spi.type.Types;
 import org.embulk.util.config.ConfigMapper;
 import org.embulk.util.config.ConfigMapperFactory;
 import org.embulk.util.config.TaskMapper;
@@ -20,7 +26,10 @@ import org.embulk.util.config.modules.TimestampModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class KintoneInputPlugin
         implements InputPlugin
@@ -40,6 +49,10 @@ public class KintoneInputPlugin
 
         Schema schema = task.getFields().toSchema();
         int taskCount = 1;  // number of run() method calls
+
+        if (schema.isEmpty()) {
+            schema = buildSchema(task);
+        }
 
         return resume(task.toTaskSource(), schema, taskCount, control);
     }
@@ -74,14 +87,30 @@ public class KintoneInputPlugin
                 client.validateAuth(task);
                 client.connect(task);
 
-                CreateCursorResponseBody cursor = client.createCursor(task);
+                CreateCursorResponseBody cursor = client.createCursor(task, schema);
                 GetRecordsByCursorResponseBody cursorResponse = new GetRecordsByCursorResponseBody(true, null);
+
+                List<String> subTableFieldCodes = null;
+                if (task.getExpandSubtable()) {
+                    subTableFieldCodes = client.getFieldCodes(task, FieldType.SUBTABLE);
+                }
 
                 while (cursorResponse.isNext()) {
                     cursorResponse = client.getRecordsByCursor(cursor.getId());
                     for (Record record : cursorResponse.getRecords()) {
-                        schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(record), pageBuilder, task));
-                        pageBuilder.addRecord();
+                        List<Record> records;
+                        if (task.getExpandSubtable()) {
+                            records = expandSubtable(record, subTableFieldCodes);
+                        }
+                        else {
+                            records = new ArrayList<>();
+                            records.add(record);
+                        }
+
+                        for (Record expandedRecord : records) {
+                            schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(expandedRecord), pageBuilder, task));
+                            pageBuilder.addRecord();
+                        }
                     }
                     pageBuilder.flush();
                 }
@@ -112,5 +141,96 @@ public class KintoneInputPlugin
     protected KintoneClient getKintoneClient()
     {
         return new KintoneClient();
+    }
+
+    private List<Record> expandSubtable(final Record originalRecord, final List<String> subTableFieldCodes)
+    {
+        ArrayList<Record> records = new ArrayList<>();
+        records.add(cloneRecord(originalRecord));
+        for (String fieldCode : subTableFieldCodes) {
+            List<TableRow> tableRows = originalRecord.getSubtableFieldValue(fieldCode);
+            for (int idx = 0; idx < tableRows.size(); idx++) {
+                if (records.size() < idx + 1) {
+                    records.add(cloneRecord(originalRecord));
+                }
+
+                TableRow tableRow = tableRows.get(idx);
+                Record currentRecord = records.get(idx);
+                Set<String> tableFieldCodes = tableRow.getFieldCodes();
+                for (String tableFieldCode : tableFieldCodes) {
+                    currentRecord.putField(tableFieldCode, tableRow.getFieldValue(tableFieldCode));
+                }
+            }
+        }
+        return records;
+    }
+
+    private Record cloneRecord(final Record src)
+    {
+        Record dst = new Record(src.getId(), src.getRevision());
+        for (String fieldCode : src.getFieldCodes(true)) {
+            dst.putField(fieldCode, src.getFieldValue(fieldCode));
+        }
+        return dst;
+    }
+
+    private Schema buildSchema(final PluginTask task)
+    {
+        KintoneClient client = getKintoneClient();
+        client.validateAuth(task);
+        client.connect(task);
+
+        Map<String, FieldProperty> fields = client.getFields(task);
+        Builder builder = Schema.builder();
+
+        // built in schema
+        builder.add("$id", Types.LONG);
+        builder.add("$revision", Types.LONG);
+
+        for (Map.Entry<String, FieldProperty> fieldEntry : fields.entrySet()) {
+            builder.add(fieldEntry.getKey(), buildType(fieldEntry.getValue().getType()));
+        }
+
+        return builder.build();
+    }
+
+    private Type buildType(final FieldType fieldType)
+    {
+        switch(fieldType) {
+            case __ID__:
+            case __REVISION__:
+            case RECORD_NUMBER:
+                return Types.LONG;
+            case CALC:
+            case NUMBER:
+                return Types.DOUBLE;
+            case CREATED_TIME:
+            case DATETIME:
+            case UPDATED_TIME:
+                return Types.TIMESTAMP;
+            case SUBTABLE:
+                return Types.JSON;
+            case CATEGORY:
+            case CHECK_BOX:
+            case CREATOR:
+            case DATE:
+            case DROP_DOWN:
+            case FILE:
+            case GROUP_SELECT:
+            case LINK:
+            case MODIFIER:
+            case MULTI_LINE_TEXT:
+            case MULTI_SELECT:
+            case ORGANIZATION_SELECT:
+            case RADIO_BUTTON:
+            case RICH_TEXT:
+            case SINGLE_LINE_TEXT:
+            case STATUS:
+            case STATUS_ASSIGNEE:
+            case TIME:
+            case USER_SELECT:
+            default:
+                return Types.STRING;
+        }
     }
 }

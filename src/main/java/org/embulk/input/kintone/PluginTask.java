@@ -44,6 +44,10 @@ public interface PluginTask
     @ConfigDefault("null")
     Optional<String> getQuery();
 
+    @Config("expand_subtable")
+    @ConfigDefault("false")
+    boolean getExpandSubtable();
+
     @Config("fields")
     SchemaConfig getFields();
 }
