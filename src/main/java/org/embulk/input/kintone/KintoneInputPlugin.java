@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class KintoneInputPlugin
         implements InputPlugin
@@ -180,7 +181,7 @@ public class KintoneInputPlugin
         client.validateAuth(task);
         client.connect(task);
 
-        Map<String, FieldProperty> fields = client.getFields(task);
+        Map<String, FieldProperty> fields = new TreeMap<>(client.getFields(task));
         Builder builder = Schema.builder();
 
         // built in schema
