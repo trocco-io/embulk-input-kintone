@@ -29,7 +29,8 @@ e.g. limit, offset are not supported.
 - **basic_auth_username**:  Kintone basic auth username Please see Kintone basic auth [here](https://jp.cybozu.help/general/en/admin/list_security/list_ip_basic/basic_auth.html) (string, optional)
 - **basic_auth_password**:  Kintone basic auth password (string, optional)
 - **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (integer, optional)
-- **fields** (required)
+- **expand_subtable**: Expand subtabble (boolean, default: `false`)
+- **fields**: If fields is empty, include all available columns (required)
   - **name** the field code of Kintone app record will be retrieved.
   - **type** Column values are converted to this embulk type. Available values options are: boolean, long, double, string, json, timestamp) Kintone `SUBTABLE` type is loaded as json text.
   - **format** Format of the timestamp if type is timestamp. The format for kintone DATETIME is `%Y-%m-%dT%H:%M:%S%z`.

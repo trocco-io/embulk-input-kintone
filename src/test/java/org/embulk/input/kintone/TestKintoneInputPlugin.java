@@ -6,6 +6,8 @@ import com.kintone.client.model.record.DateTimeFieldValue;
 import com.kintone.client.model.record.NumberFieldValue;
 import com.kintone.client.model.record.Record;
 import com.kintone.client.model.record.SingleLineTextFieldValue;
+import com.kintone.client.model.record.SubtableFieldValue;
+import com.kintone.client.model.record.TableRow;
 import org.embulk.EmbulkTestRuntime;
 import org.embulk.config.ConfigDiff;
 import org.embulk.config.ConfigSource;
@@ -73,7 +75,6 @@ public class TestKintoneInputPlugin
             .registerPlugin(InputPlugin.class, "kintone", KintoneInputPlugin.class)
             .build();
 
-    // Comment out for now
     @Test
     public void simpleTest()
     {
@@ -81,7 +82,7 @@ public class TestKintoneInputPlugin
         PluginTask task = configMapper.map(config, PluginTask.class);
         Schema outputSchema =  task.getFields().toSchema();
         GetRecordsByCursorResponseBody response = createSampleData();
-        when(kintoneClient.getResponse(any(PluginTask.class))).thenReturn(response);
+        when(kintoneClient.getResponse(any(PluginTask.class), any(Schema.class))).thenReturn(response);
 
         ConfigDiff configDiff = kintoneInputPlugin.transaction(config, new Control());
 
@@ -126,6 +127,7 @@ public class TestKintoneInputPlugin
         assertFalse(task.getBasicAuthUsername().isPresent());
         assertFalse(task.getBasicAuthPassword().isPresent());
         assertFalse(task.getQuery().isPresent());
+        assertFalse(task.getExpandSubtable());
         assertNotNull(task.getFields());
     }
 
@@ -140,6 +142,9 @@ public class TestKintoneInputPlugin
         record1.putField("baz",  new NumberFieldValue(1L));
         record1.putField("date",  new DateFieldValue(LocalDate.of(2020, 1, 1)));
         record1.putField("datetime",  new DateTimeFieldValue(ZonedDateTime.parse("2020-01-01T00:00:00Z")));
+        TableRow subtableRow1 = new TableRow();
+        subtableRow1.putField("subtable_num", new NumberFieldValue(1L));
+        record1.putField("subtable",  new SubtableFieldValue(subtableRow1));
         records.add(record1);
 
         record2.putField("foo",  new SingleLineTextFieldValue("test single text2"));
@@ -147,6 +152,9 @@ public class TestKintoneInputPlugin
         record2.putField("baz",  new NumberFieldValue(2L));
         record2.putField("date",  new DateFieldValue(LocalDate.of(2020, 2, 2)));
         record2.putField("datetime",  new DateTimeFieldValue(ZonedDateTime.parse("2020-02-02T00:00:00Z")));
+        TableRow subtableRow2 = new TableRow();
+        subtableRow2.putField("subtable_num", new NumberFieldValue(1L));
+        record1.putField("subtable",  new SubtableFieldValue(subtableRow2));
         records.add(record2);
 
         return new GetRecordsByCursorResponseBody(false, records);
