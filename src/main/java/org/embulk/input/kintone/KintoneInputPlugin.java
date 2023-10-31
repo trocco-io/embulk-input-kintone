@@ -189,7 +189,10 @@ public class KintoneInputPlugin
         builder.add("$revision", Types.LONG);
 
         for (Map.Entry<String, FieldProperty> fieldEntry : fields.entrySet()) {
-            builder.add(fieldEntry.getKey(), buildType(fieldEntry.getValue().getType()));
+            final Type type = buildType(fieldEntry.getValue().getType());
+            if (type != null) {
+                builder.add(fieldEntry.getKey(), type);
+            }
         }
 
         return builder.build();
@@ -230,8 +233,9 @@ public class KintoneInputPlugin
             case STATUS_ASSIGNEE:
             case TIME:
             case USER_SELECT:
-            default:
                 return Types.STRING;
+            default:
+                return null;
         }
     }
 }
