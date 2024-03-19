@@ -87,6 +87,8 @@ public class KintoneAccessor
             case NUMBER:
                 return toString(record.getNumberFieldValue(fieldCode), BigDecimal::toString);
             case CALC:
+                logger.info("REACH");
+                logger.info(record.getCalcFieldValue(fieldCode));
                 return toString(record.getCalcFieldValue(fieldCode), BigDecimal::toString);
             case CHECK_BOX:
                 return toString(record.getCheckBoxFieldValue(fieldCode));
