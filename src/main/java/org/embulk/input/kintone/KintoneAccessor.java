@@ -87,7 +87,7 @@ public class KintoneAccessor
             case NUMBER:
                 return toString(record.getNumberFieldValue(fieldCode), BigDecimal::toString);
             case CALC:
-                return toString(record.getCalcFieldValue(fieldCode), BigDecimal::toString);
+                return record.getCalcFieldRawValue(fieldCode);
             case CHECK_BOX:
                 return toString(record.getCheckBoxFieldValue(fieldCode));
             case RADIO_BUTTON:
