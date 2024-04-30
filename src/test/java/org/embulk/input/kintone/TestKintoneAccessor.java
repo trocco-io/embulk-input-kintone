@@ -106,7 +106,7 @@ public class TestKintoneAccessor
         testRecord.putField("作成日時", new CreatedTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
         testRecord.putField("更新者", new ModifierFieldValue(modifier));
         testRecord.putField("更新日時", new UpdatedTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
-        testRecord.putField("計算", new CalcFieldValue(new BigDecimal("1.23E-12")));
+        testRecord.putField("計算", new CalcFieldValue("1.23E-12"));
         FileBody body1 = new FileBody();
         body1.setFileKey("sample_file1");
         FileBody body2 = new FileBody();
