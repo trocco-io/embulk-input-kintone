@@ -81,6 +81,6 @@ $ ./gradlew gem  # -t to watch change of files and rebuild continuously
 
 ## Development
 ```
-$ ./gradew build
-$ ./gradew test
+$ ./gradlew build
+$ ./gradlew test
 ```
