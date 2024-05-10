@@ -106,7 +106,12 @@ public class TestKintoneAccessor
         testRecord.putField("作成日時", new CreatedTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
         testRecord.putField("更新者", new ModifierFieldValue(modifier));
         testRecord.putField("更新日時", new UpdatedTimeFieldValue(ZonedDateTime.parse("2012-01-11T11:30:00Z")));
-        testRecord.putField("計算", new CalcFieldValue("1.23E-12"));
+        testRecord.putField("計算(Calc)", new CalcFieldValue("1.23E-12"));
+        testRecord.putField("数値(Calc)", new CalcFieldValue("1234"));
+        testRecord.putField("日時(Calc)", new CalcFieldValue("2012-01-11T11:30:00Z"));
+        testRecord.putField("日付(Calc)", new CalcFieldValue("2012-01-11"));
+        testRecord.putField("時刻(Calc)", new CalcFieldValue("11:30"));
+        testRecord.putField("時間(Calc)", new CalcFieldValue("49:30"));
         FileBody body1 = new FileBody();
         body1.setFileKey("sample_file1");
         FileBody body2 = new FileBody();
@@ -153,7 +158,12 @@ public class TestKintoneAccessor
         assertEquals("2012-01-11T11:30:00Z", accessor.get("作成日時"));
         assertEquals("code10", accessor.get("更新者"));
         assertEquals("2012-01-11T11:30:00Z", accessor.get("更新日時"));
-        assertEquals("1.23E-12", accessor.get("計算"));
+        assertEquals("1.23E-12", accessor.get("計算(Calc)"));
+        assertEquals("1234", accessor.get("数値(Calc)"));
+        assertEquals("2012-01-11T11:30:00Z", accessor.get("日時(Calc)"));
+        assertEquals("2012-01-11", accessor.get("日付(Calc)"));
+        assertEquals("11:30", accessor.get("時刻(Calc)"));
+        assertEquals("49:30", accessor.get("時間(Calc)"));
         assertEquals("sample_file1\nsample_file2", accessor.get("添付ファイル"));
         assertEquals("sample_category1\nsample_category2", accessor.get("カテゴリー"));
         assertEquals("sample_status", accessor.get("ステータス"));
