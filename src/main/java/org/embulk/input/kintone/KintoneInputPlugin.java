@@ -1,7 +1,6 @@
 package org.embulk.input.kintone;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import com.kintone.client.model.app.field.FieldProperty;
 import com.kintone.client.model.record.FieldType;
@@ -82,42 +81,39 @@ public class KintoneInputPlugin
         final TaskMapper taskMapper = CONFIG_MAPPER_FACTORY.createTaskMapper();
         final PluginTask task = taskMapper.map(taskSource, PluginTask.class);
 
-        try {
-            try (PageBuilder pageBuilder = getPageBuilder(schema, output)) {
-                KintoneClient client = getKintoneClient();
-                client.validateAuth(task);
-                client.connect(task);
+        try (PageBuilder pageBuilder = getPageBuilder(schema, output); KintoneClient client = getKintoneClient()) {
+            client.validateAuth(task);
+            client.connect(task);
+            client.createCursor(task, schema);
 
-                CreateCursorResponseBody cursor = client.createCursor(task, schema);
-                GetRecordsByCursorResponseBody cursorResponse = new GetRecordsByCursorResponseBody(true, null);
+            GetRecordsByCursorResponseBody cursorResponse = new GetRecordsByCursorResponseBody(true, null);
 
-                List<String> subTableFieldCodes = null;
-                if (task.getExpandSubtable()) {
-                    subTableFieldCodes = client.getFieldCodes(task, FieldType.SUBTABLE);
-                }
-
-                while (cursorResponse.isNext()) {
-                    cursorResponse = client.getRecordsByCursor(cursor.getId());
-                    for (Record record : cursorResponse.getRecords()) {
-                        List<Record> records;
-                        if (task.getExpandSubtable()) {
-                            records = expandSubtable(record, subTableFieldCodes);
-                        }
-                        else {
-                            records = new ArrayList<>();
-                            records.add(record);
-                        }
-
-                        for (Record expandedRecord : records) {
-                            schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(expandedRecord), pageBuilder, task));
-                            pageBuilder.addRecord();
-                        }
-                    }
-                    pageBuilder.flush();
-                }
-
-                pageBuilder.finish();
+            List<String> subTableFieldCodes = null;
+            if (task.getExpandSubtable()) {
+                subTableFieldCodes = client.getFieldCodes(task, FieldType.SUBTABLE);
             }
+
+            while (cursorResponse.isNext()) {
+                cursorResponse = client.getRecordsByCursor();
+                for (Record record : cursorResponse.getRecords()) {
+                    List<Record> records;
+                    if (task.getExpandSubtable()) {
+                        records = expandSubtable(record, subTableFieldCodes);
+                    }
+                    else {
+                        records = new ArrayList<>();
+                        records.add(record);
+                    }
+
+                    for (Record expandedRecord : records) {
+                        schema.visitColumns(new KintoneInputColumnVisitor(new KintoneAccessor(expandedRecord), pageBuilder, task));
+                        pageBuilder.addRecord();
+                    }
+                }
+                pageBuilder.flush();
+            }
+
+            pageBuilder.finish();
         }
         catch (Exception e) {
             logger.error(e.getMessage());
