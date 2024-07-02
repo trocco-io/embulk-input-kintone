@@ -215,7 +215,7 @@ public class TestKintoneAccessor
         record.putField("文字列（複数行）", new MultiLineTextFieldValue("テスト\nです。"));
         record.putField("リッチエディター", new RichTextFieldValue("<a href=\"https://www.cybozu.com\">サイボウズ</a>"));
         record.putField("数値", new NumberFieldValue(new BigDecimal("123")));
-        record.putField("計算", new CalcFieldValue(new BigDecimal("456")));
+        record.putField("計算", new CalcFieldValue("456"));
         record.putField("チェックボックス", new CheckBoxFieldValue("選択肢1", "選択肢2"));
         record.putField("ラジオボタン", new RadioButtonFieldValue("選択肢3"));
         record.putField("複数選択", new MultiSelectFieldValue("選択肢4", "選択肢5"));
@@ -242,7 +242,7 @@ public class TestKintoneAccessor
         tableRow.putField("文字列（複数行）", new MultiLineTextFieldValue("テスト\nです。"));
         tableRow.putField("リッチエディター", new RichTextFieldValue("<a href=\"https://www.cybozu.com\">サイボウズ</a>"));
         tableRow.putField("数値", new NumberFieldValue(new BigDecimal("123")));
-        tableRow.putField("計算", new CalcFieldValue(new BigDecimal("456")));
+        tableRow.putField("計算", new CalcFieldValue("456"));
         tableRow.putField("チェックボックス", new CheckBoxFieldValue("選択肢1", "選択肢2"));
         tableRow.putField("ラジオボタン", new RadioButtonFieldValue("選択肢3"));
         tableRow.putField("複数選択", new MultiSelectFieldValue("選択肢4", "選択肢5"));
@@ -327,7 +327,7 @@ public class TestKintoneAccessor
         record.putField("文字列（複数行）", new MultiLineTextFieldValue(null));
         record.putField("リッチエディター", new RichTextFieldValue(null));
         record.putField("数値", new NumberFieldValue(null));
-        record.putField("計算", new CalcFieldValue((BigDecimal) null));
+        record.putField("計算", new CalcFieldValue(null));
         record.putField("チェックボックス（空）", new CheckBoxFieldValue());
         record.putField("チェックボックス（null要素）", new CheckBoxFieldValue(null, null));
         record.putField("ラジオボタン", new RadioButtonFieldValue(null));
@@ -373,7 +373,7 @@ public class TestKintoneAccessor
         tableRow.putField("文字列（複数行）", new MultiLineTextFieldValue(null));
         tableRow.putField("リッチエディター", new RichTextFieldValue(null));
         tableRow.putField("数値", new NumberFieldValue(null));
-        tableRow.putField("計算", new CalcFieldValue((BigDecimal) null));
+        tableRow.putField("計算", new CalcFieldValue(null));
         tableRow.putField("チェックボックス（空）", new CheckBoxFieldValue());
         tableRow.putField("チェックボックス（null要素）", new CheckBoxFieldValue(null, null));
         tableRow.putField("ラジオボタン", new RadioButtonFieldValue(null));
