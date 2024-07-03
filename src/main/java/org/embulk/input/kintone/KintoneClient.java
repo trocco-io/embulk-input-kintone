@@ -125,11 +125,12 @@ public class KintoneClient implements AutoCloseable
         }
     }
 
-    public void deleteCursor()
+    private void deleteCursor()
     {
         if (this.cursorId != null) {
             try {
                 this.recordClient.deleteCursor(this.cursorId);
+                this.cursorId = null;
             }
             catch (KintoneApiRuntimeException e) {
                 this.logger.error(e.toString());
