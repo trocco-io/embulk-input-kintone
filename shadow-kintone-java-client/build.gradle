@@ -25,7 +25,7 @@ configurations {
 }
 
 dependencies {
-    implementation "com.kintone:kintone-java-client:2.2.0"
+    implementation "com.kintone:kintone-java-client:2.2.1"
 }
 
 shadowJar {
