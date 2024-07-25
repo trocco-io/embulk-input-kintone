@@ -26,6 +26,7 @@ public class KintoneClient implements AutoCloseable
 {
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
+    private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -102,6 +103,9 @@ public class KintoneClient implements AutoCloseable
 
     public void createCursor(final PluginTask task, final Schema schema)
     {
+        if (this.cursorId != null) {
+            throw new RuntimeException(CURSOR_ALREADY_EXISTS_ERROR);
+        }
         ArrayList<String> fields = new ArrayList<>();
         for (Column c : schema.getColumns()) {
             fields.add(c.getName());
