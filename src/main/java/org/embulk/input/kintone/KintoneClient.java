@@ -22,12 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KintoneClient
+public class KintoneClient implements AutoCloseable
 {
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
+    private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
     private RecordClient recordClient;
     private AppClient appClient;
+    private String cursorId;
 
     public KintoneClient() throws ConfigException
     {
@@ -78,31 +80,32 @@ public class KintoneClient
 
     public GetRecordsByCursorResponseBody getResponse(final PluginTask task, final Schema schema)
     {
-        CreateCursorResponseBody cursor = this.createCursor(task, schema);
+        this.createCursor(task, schema);
         try {
-            return this.recordClient.getRecordsByCursor(cursor.getId());
+            return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
             this.logger.error(e.toString());
-            this.deleteCursor(cursor.getId());
             throw new RuntimeException(e);
         }
     }
 
-    public GetRecordsByCursorResponseBody getRecordsByCursor(String cursor)
+    public GetRecordsByCursorResponseBody getRecordsByCursor()
     {
         try {
-            return this.recordClient.getRecordsByCursor(cursor);
+            return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
             this.logger.error(e.toString());
-            this.deleteCursor(cursor);
             throw new RuntimeException(e);
         }
     }
 
-    public CreateCursorResponseBody createCursor(final PluginTask task, final Schema schema)
+    public void createCursor(final PluginTask task, final Schema schema)
     {
+        if (this.cursorId != null) {
+            throw new RuntimeException(CURSOR_ALREADY_EXISTS_ERROR);
+        }
         ArrayList<String> fields = new ArrayList<>();
         for (Column c : schema.getColumns()) {
             fields.add(c.getName());
@@ -117,7 +120,8 @@ public class KintoneClient
         request.setQuery(task.getQuery().orElse(""));
         request.setSize((long) FETCH_SIZE);
         try {
-            return this.recordClient.createCursor(request);
+            CreateCursorResponseBody cursorResponse = recordClient.createCursor(request);
+            this.cursorId = cursorResponse.getId();
         }
         catch (KintoneApiRuntimeException e) {
             this.logger.error(e.toString());
@@ -125,13 +129,16 @@ public class KintoneClient
         }
     }
 
-    public void deleteCursor(String cursor)
+    private void deleteCursor()
     {
-        try {
-            this.recordClient.deleteCursor(cursor);
-        }
-        catch (KintoneApiRuntimeException e) {
-            this.logger.error(e.toString());
+        if (this.cursorId != null) {
+            try {
+                this.recordClient.deleteCursor(this.cursorId);
+                this.cursorId = null;
+            }
+            catch (KintoneApiRuntimeException e) {
+                this.logger.error(e.toString());
+            }
         }
     }
 
@@ -166,5 +173,11 @@ public class KintoneClient
             }
         }
         return fieldCodes;
+    }
+
+    @Override
+    public void close()
+    {
+        this.deleteCursor();
     }
 }

@@ -9,10 +9,14 @@ import com.kintone.client.model.record.FieldType;
 import org.embulk.config.ConfigException;
 import org.embulk.config.ConfigSource;
 import org.embulk.spi.InputPlugin;
+import org.embulk.spi.Schema;
 import org.embulk.test.TestingEmbulk;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -165,5 +169,42 @@ public class TestKintoneClient
 
         assertEquals(1, client.getFieldCodes(task, FieldType.SUBTABLE).size());
         assertTrue(client.getFieldCodes(task, FieldType.SUBTABLE).contains("subtable2"));
+    }
+
+    @Test
+    public void testCreateCursorThrowsExceptionWhenCursorAlreadyExists()
+    {
+        config = loadYamlResource(embulk);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        Schema schema = mock(Schema.class);
+
+        KintoneClient client = new KintoneClient(appClient);
+
+        try {
+            Field cursorIdField = KintoneClient.class.getDeclaredField("cursorId");
+            cursorIdField.setAccessible(true);
+            cursorIdField.set(client, "existingCursorId");
+
+            Field cursorAlreadyExistsErrorField = KintoneClient.class.getDeclaredField("CURSOR_ALREADY_EXISTS_ERROR");
+            cursorAlreadyExistsErrorField.setAccessible(true);
+            String cursorAlreadyExistsErrorMessage = (String) cursorAlreadyExistsErrorField.get(null);
+
+            Method createCursorMethod = KintoneClient.class.getDeclaredMethod("createCursor", PluginTask.class, Schema.class);
+            createCursorMethod.setAccessible(true);
+
+            Exception exception = assertThrows(RuntimeException.class, () -> {
+                try {
+                    createCursorMethod.invoke(client, task, schema);
+                }
+                catch (InvocationTargetException ex) {
+                    throw ex.getTargetException();
+                }
+            });
+
+            assertEquals(cursorAlreadyExistsErrorMessage, exception.getMessage());
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Reflection error", e);
+        }
     }
 }
