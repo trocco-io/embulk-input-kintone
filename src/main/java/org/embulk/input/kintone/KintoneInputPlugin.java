@@ -208,27 +208,27 @@ public class KintoneInputPlugin
             case DATETIME:
             case UPDATED_TIME:
                 return Types.TIMESTAMP;
+            case CREATOR:
+            case GROUP_SELECT:
+            case MODIFIER:
+            case ORGANIZATION_SELECT:
+            case STATUS_ASSIGNEE:
             case SUBTABLE:
+            case USER_SELECT:
                 return Types.JSON;
             case CATEGORY:
             case CHECK_BOX:
-            case CREATOR:
             case DATE:
             case DROP_DOWN:
             case FILE:
-            case GROUP_SELECT:
             case LINK:
-            case MODIFIER:
             case MULTI_LINE_TEXT:
             case MULTI_SELECT:
-            case ORGANIZATION_SELECT:
             case RADIO_BUTTON:
             case RICH_TEXT:
             case SINGLE_LINE_TEXT:
             case STATUS:
-            case STATUS_ASSIGNEE:
             case TIME:
-            case USER_SELECT:
                 return Types.STRING;
             default:
                 return null;

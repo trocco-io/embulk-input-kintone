@@ -129,11 +129,13 @@ public class TestKintoneAccessor
         Record testRecord = createTestRecord();
         KintoneAccessor accessor = new KintoneAccessor(testRecord);
         String multiValue = "sample1\nsample2";
-        String userSelect = "code1\ncode2";
-        String groupSelect = "code3\ncode4";
-        String orgSelect = "code5\ncode6";
-        String assigneeSelect = "code7\ncode8";
+        String userSelectValue = "[{\"name\":\"name1\",\"code\":\"code1\"},{\"name\":\"name2\",\"code\":\"code2\"}]";
+        String groupSelect = "[{\"name\":\"name3\",\"code\":\"code3\"},{\"name\":\"name4\",\"code\":\"code4\"}]";
+        String orgSelect = "[{\"name\":\"name5\",\"code\":\"code5\"},{\"name\":\"name5\",\"code\":\"code6\"}]";
+        String assigneeSelect = "[{\"name\":\"name7\",\"code\":\"code7\"},{\"name\":\"name8\",\"code\":\"code8\"}]";
         String subTableValue = "[{\"id\":1,\"value\":{\"sample field1\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"sample_text1\"}}}]";
+        String creatorValue = "{\"name\":\"name9\",\"code\":\"code9\"}";
+        String modifierValue = "{\"name\":\"name10\",\"code\":\"code10\"}";
         assertEquals(testRecord.getSingleLineTextFieldValue("文字列__1行"), accessor.get("文字列__1行"));
         assertEquals("1", accessor.get("数値"));
         assertEquals(testRecord.getMultiLineTextFieldValue("文字列__複数行"), accessor.get("文字列__複数行"));
@@ -146,7 +148,7 @@ public class TestKintoneAccessor
         assertEquals("2018-01-01", accessor.get("日付"));
         assertEquals("12:34", accessor.get("時刻"));
         assertEquals("2018-01-02T02:30:00Z", accessor.get("日時"));
-        assertEquals(userSelect, accessor.get("ユーザー選択"));
+        assertEquals(userSelectValue, accessor.get("ユーザー選択"));
         assertEquals(groupSelect, accessor.get("グループ選択"));
         assertEquals(orgSelect, accessor.get("組織選択"));
         assertEquals(assigneeSelect, accessor.get("作業者"));
@@ -154,9 +156,9 @@ public class TestKintoneAccessor
         assertEquals("sample_record_number", accessor.get("レコード番号"));
         assertEquals("123", accessor.get("$id"));
         assertEquals("456", accessor.get("$revision"));
-        assertEquals("code9", accessor.get("作成者"));
+        assertEquals(creatorValue, accessor.get("作成者"));
         assertEquals("2012-01-11T11:30:00Z", accessor.get("作成日時"));
-        assertEquals("code10", accessor.get("更新者"));
+        assertEquals(modifierValue, accessor.get("更新者"));
         assertEquals("2012-01-11T11:30:00Z", accessor.get("更新日時"));
         assertEquals("1.23E-12", accessor.get("計算(Calc)"));
         assertEquals("1234", accessor.get("数値(Calc)"));
@@ -176,9 +178,9 @@ public class TestKintoneAccessor
         assertEquals("APPCODE-1", accessor.get("レコード番号"));
         assertEquals("1", accessor.get("$id"));
         assertEquals("5", accessor.get("$revision"));
-        assertEquals("sato", accessor.get("作成者"));
+        assertEquals("{\"name\":\"Noboru Sato\",\"code\":\"sato\"}", accessor.get("作成者"));
         assertEquals("2021-01-11T11:11:11Z", accessor.get("作成日時"));
-        assertEquals("guest/kato@cybozu.com", accessor.get("更新者"));
+        assertEquals("{\"name\":\"Misaki Kato\",\"code\":\"guest/kato@cybozu.com\"}", accessor.get("更新者"));
         assertEquals("2022-02-22T22:22:22Z", accessor.get("更新日時"));
         assertEquals("テストです。", accessor.get("文字列（1行）"));
         assertEquals("テスト\nです。", accessor.get("文字列（複数行）"));
@@ -189,9 +191,9 @@ public class TestKintoneAccessor
         assertEquals("選択肢3", accessor.get("ラジオボタン"));
         assertEquals("選択肢4\n選択肢5", accessor.get("複数選択"));
         assertEquals("選択肢6", accessor.get("ドロップダウン"));
-        assertEquals("guest/sato@cybozu.com\nkato", accessor.get("ユーザー選択"));
-        assertEquals("kaihatsu\njinji", accessor.get("組織選択"));
-        assertEquals("project_manager\nteam_leader", accessor.get("グループ選択"));
+        assertEquals("[{\"name\":\"Noboru Sato\",\"code\":\"guest/sato@cybozu.com\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]", accessor.get("ユーザー選択"));
+        assertEquals("[{\"name\":\"開発部\",\"code\":\"kaihatsu\"},{\"name\":\"人事部\",\"code\":\"jinji\"}]", accessor.get("組織選択"));
+        assertEquals("[{\"name\":\"プロジェクトマネージャー\",\"code\":\"project_manager\"},{\"name\":\"チームリーダー\",\"code\":\"team_leader\"}]", accessor.get("グループ選択"));
         assertEquals("2012-01-11", accessor.get("日付"));
         assertEquals("11:30", accessor.get("時刻"));
         assertEquals("2012-01-11T11:30:00Z", accessor.get("日時"));
@@ -200,7 +202,7 @@ public class TestKintoneAccessor
         assertEquals("[{\"id\":48290,\"value\":{\"リッチエディター\":{\"type\":\"RICH_TEXT\",\"value\":\"\\u003ca href\\u003d\\\"https://www.cybozu.com\\\"\\u003eサイボウズ\\u003c/a\\u003e\"},\"グループ選択\":{\"type\":\"GROUP_SELECT\",\"value\":[{\"name\":\"プロジェクトマネージャー\",\"code\":\"project_manager\"},{\"name\":\"チームリーダー\",\"code\":\"team_leader\"}]},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"テストです。\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\",\"value\":\"選択肢3\"},\"ドロップダウン\":{\"type\":\"DROP_DOWN\",\"value\":\"選択肢6\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{\"name\":\"開発部\",\"code\":\"kaihatsu\"},{\"name\":\"人事部\",\"code\":\"jinji\"}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\",\"value\":[{\"name\":\"Noboru Sato\",\"code\":\"guest/sato@cybozu.com\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]},\"日時\":{\"type\":\"DATETIME\",\"value\":\"2012-01-11T11:30:00Z\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\",\"value\":\"テスト\\nです。\"},\"時刻\":{\"type\":\"TIME\",\"value\":\"11:30\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\",\"value\":[\"選択肢1\",\"選択肢2\"]},\"複数選択\":{\"type\":\"MULTI_SELECT\",\"value\":[\"選択肢4\",\"選択肢5\"]},\"数値\":{\"type\":\"NUMBER\",\"value\":\"123\"},\"添付ファイル\":{\"type\":\"FILE\",\"value\":[{\"contentType\":\"text/plain\",\"fileKey\":\"201202061155587E339F9067544F1A92C743460E3D12B3297\",\"name\":\"17to20_VerupLog (1).txt\",\"size\":\"23175\"},{\"contentType\":\"application/json\",\"fileKey\":\"201202061155583C763E30196F419E83E91D2E4A03746C273\",\"name\":\"17to20_VerupLog.txt\",\"size\":\"23176\"}]},\"リンク\":{\"type\":\"LINK\",\"value\":\"https://cybozu.co.jp/\"},\"計算\":{\"type\":\"CALC\",\"value\":\"456\"},\"日付\":{\"type\":\"DATE\",\"value\":\"2012-01-11\"}}},{\"id\":48291,\"value\":{\"リッチエディター\":{\"type\":\"RICH_TEXT\",\"value\":\"\\u003ca href\\u003d\\\"https://www.cybozu.com\\\"\\u003eサイボウズ\\u003c/a\\u003e\"},\"グループ選択\":{\"type\":\"GROUP_SELECT\",\"value\":[{\"name\":\"プロジェクトマネージャー\",\"code\":\"project_manager\"},{\"name\":\"チームリーダー\",\"code\":\"team_leader\"}]},\"文字列（1行）\":{\"type\":\"SINGLE_LINE_TEXT\",\"value\":\"テストです。\"},\"ラジオボタン\":{\"type\":\"RADIO_BUTTON\",\"value\":\"選択肢3\"},\"ドロップダウン\":{\"type\":\"DROP_DOWN\",\"value\":\"選択肢6\"},\"組織選択\":{\"type\":\"ORGANIZATION_SELECT\",\"value\":[{\"name\":\"開発部\",\"code\":\"kaihatsu\"},{\"name\":\"人事部\",\"code\":\"jinji\"}]},\"ユーザー選択\":{\"type\":\"USER_SELECT\",\"value\":[{\"name\":\"Noboru Sato\",\"code\":\"guest/sato@cybozu.com\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]},\"日時\":{\"type\":\"DATETIME\",\"value\":\"2012-01-11T11:30:00Z\"},\"文字列（複数行）\":{\"type\":\"MULTI_LINE_TEXT\",\"value\":\"テスト\\nです。\"},\"時刻\":{\"type\":\"TIME\",\"value\":\"11:30\"},\"チェックボックス\":{\"type\":\"CHECK_BOX\",\"value\":[\"選択肢1\",\"選択肢2\"]},\"複数選択\":{\"type\":\"MULTI_SELECT\",\"value\":[\"選択肢4\",\"選択肢5\"]},\"数値\":{\"type\":\"NUMBER\",\"value\":\"123\"},\"添付ファイル\":{\"type\":\"FILE\",\"value\":[{\"contentType\":\"text/plain\",\"fileKey\":\"201202061155587E339F9067544F1A92C743460E3D12B3297\",\"name\":\"17to20_VerupLog (1).txt\",\"size\":\"23175\"},{\"contentType\":\"application/json\",\"fileKey\":\"201202061155583C763E30196F419E83E91D2E4A03746C273\",\"name\":\"17to20_VerupLog.txt\",\"size\":\"23176\"}]},\"リンク\":{\"type\":\"LINK\",\"value\":\"https://cybozu.co.jp/\"},\"計算\":{\"type\":\"CALC\",\"value\":\"456\"},\"日付\":{\"type\":\"DATE\",\"value\":\"2012-01-11\"}}}]", accessor.get("テーブル"));
         assertEquals("category1\ncategory2", accessor.get("カテゴリー"));
         assertEquals("未処理", accessor.get("ステータス"));
-        assertEquals("sato\nkato", accessor.get("作業者"));
+        assertEquals("[{\"name\":\"Noboru Sato\",\"code\":\"sato\"},{\"name\":\"Misaki Kato\",\"code\":\"kato\"}]", accessor.get("作業者"));
     }
 
     private Record record()
@@ -266,10 +268,10 @@ public class TestKintoneAccessor
         assertNull(accessor.get("$id"));
         assertNull(accessor.get("$revision"));
         assertNull(accessor.get("作成者"));
-        assertNull(accessor.get("作成者（null項目）"));
+        assertEquals("{}", accessor.get("作成者（null項目）"));
         assertNull(accessor.get("作成日時"));
         assertNull(accessor.get("更新者"));
-        assertNull(accessor.get("更新者（null項目）"));
+        assertEquals("{}", accessor.get("更新者（null項目）"));
         assertNull(accessor.get("更新日時"));
         assertNull(accessor.get("文字列（1行）"));
         assertNull(accessor.get("文字列（複数行）"));
@@ -282,15 +284,15 @@ public class TestKintoneAccessor
         assertEquals("", accessor.get("複数選択（空）"));
         assertEquals("", accessor.get("複数選択（null要素）"));
         assertNull(accessor.get("ドロップダウン"));
-        assertEquals("", accessor.get("ユーザー選択（空）"));
-        assertEquals("", accessor.get("ユーザー選択（null要素）"));
-        assertEquals("", accessor.get("ユーザー選択（null項目）"));
-        assertEquals("", accessor.get("組織選択（空）"));
-        assertEquals("", accessor.get("組織選択（null要素）"));
-        assertEquals("", accessor.get("組織選択（null項目）"));
-        assertEquals("", accessor.get("グループ選択（空）"));
-        assertEquals("", accessor.get("グループ選択（null要素）"));
-        assertEquals("", accessor.get("グループ選択（null項目）"));
+        assertEquals("[]", accessor.get("ユーザー選択（空）"));
+        assertEquals("[null,null]", accessor.get("ユーザー選択（null要素）"));
+        assertEquals("[{},{}]", accessor.get("ユーザー選択（null項目）"));
+        assertEquals("[]", accessor.get("組織選択（空）"));
+        assertEquals("[null,null]", accessor.get("組織選択（null要素）"));
+        assertEquals("[{},{}]", accessor.get("組織選択（null項目）"));
+        assertEquals("[]", accessor.get("グループ選択（空）"));
+        assertEquals("[null,null]", accessor.get("グループ選択（null要素）"));
+        assertEquals("[{},{}]", accessor.get("グループ選択（null項目）"));
         assertNull(accessor.get("日付"));
         assertNull(accessor.get("時刻"));
         assertNull(accessor.get("日時"));
@@ -306,7 +308,7 @@ public class TestKintoneAccessor
         assertEquals("", accessor.get("カテゴリー（null要素）"));
          */
         assertNull(accessor.get("ステータス"));
-        assertEquals("", accessor.get("作業者（空）"));
+        assertEquals("[]", accessor.get("作業者（空）"));
         /* ビルトインフィールドは 1 つしか追加できない
         assertEquals("", accessor.get("作業者（null要素）"));
         assertEquals("", accessor.get("作業者（null項目）"));
