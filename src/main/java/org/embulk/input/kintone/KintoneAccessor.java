@@ -8,9 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.kintone.client.model.FileBody;
-import com.kintone.client.model.Group;
-import com.kintone.client.model.Organization;
-import com.kintone.client.model.User;
 import com.kintone.client.model.record.CalcFieldValue;
 import com.kintone.client.model.record.CheckBoxFieldValue;
 import com.kintone.client.model.record.DateFieldValue;
@@ -71,11 +68,11 @@ public class KintoneAccessor
             case __REVISION__:
                 return toString(record.getRevision(), Objects::toString);
             case CREATOR:
-                return toString(record.getCreatorFieldValue(), User::getCode);
+                return gson.toJson(record.getCreatorFieldValue());
             case CREATED_TIME:
                 return toString(record.getCreatedTimeFieldValue(), (value) -> value.toInstant().toString());
             case MODIFIER:
-                return toString(record.getModifierFieldValue(), User::getCode);
+                return gson.toJson(record.getModifierFieldValue());
             case UPDATED_TIME:
                 return toString(record.getUpdatedTimeFieldValue(), (value) -> value.toInstant().toString());
             case SINGLE_LINE_TEXT:
@@ -97,11 +94,11 @@ public class KintoneAccessor
             case DROP_DOWN:
                 return record.getDropDownFieldValue(fieldCode);
             case USER_SELECT:
-                return toString(record.getUserSelectFieldValue(fieldCode), User::getCode);
+                return gson.toJson(record.getUserSelectFieldValue(fieldCode));
             case ORGANIZATION_SELECT:
-                return toString(record.getOrganizationSelectFieldValue(fieldCode), Organization::getCode);
+                return gson.toJson(record.getOrganizationSelectFieldValue(fieldCode));
             case GROUP_SELECT:
-                return toString(record.getGroupSelectFieldValue(fieldCode), Group::getCode);
+                return gson.toJson(record.getGroupSelectFieldValue(fieldCode));
             case DATE:
                 return toString(record.getDateFieldValue(fieldCode), LocalDate::toString);
             case TIME:
@@ -119,7 +116,7 @@ public class KintoneAccessor
             case STATUS:
                 return record.getStatusFieldValue();
             case STATUS_ASSIGNEE:
-                return toString(record.getStatusAssigneeFieldValue(), User::getCode);
+                return gson.toJson(record.getStatusAssigneeFieldValue());
             // 以下は値を取得できないもの
             case REFERENCE_TABLE:
             case LABEL:
