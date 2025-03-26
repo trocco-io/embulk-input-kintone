@@ -2,8 +2,8 @@ plugins {
     id "java"
     id "checkstyle"
     id "maven-publish"
-    id "org.embulk.embulk-plugins" version "0.4.2"
-    id "com.github.johnrengelman.shadow" version "6.1.0" apply false
+    id "org.embulk.embulk-plugins" version "0.5.5"
+    id "io.github.goooler.shadow" version "8.1.7" apply false
     id "com.palantir.git-version" version "0.12.3"
 }
 
@@ -29,21 +29,21 @@ dependencies {
     compileOnly "org.embulk:embulk-api:$embulkVersion"
     compileOnly "org.embulk:embulk-spi:$embulkVersion"
 
-    compile "org.embulk:embulk-util-config:0.3.1"
-    compile "org.embulk:embulk-util-json:0.1.1"
-    compile "org.embulk:embulk-util-timestamp:0.2.1"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.6.7" // Need to specify explicitly
-    compile "com.google.code.gson:gson:2.9.0"
-    compile "com.google.guava:guava:31.1-jre"
+    implementation "org.embulk:embulk-util-config:0.3.1"
+    implementation "org.embulk:embulk-util-json:0.1.1"
+    implementation "org.embulk:embulk-util-timestamp:0.2.1"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.6.7" // Need to specify explicitly
+    implementation "com.google.code.gson:gson:2.9.0"
+    implementation "com.google.guava:guava:31.1-jre"
 
-    compile project(path: ":shadow-kintone-java-client", configuration: "shadow")
+    implementation project(path: ":shadow-kintone-java-client", configuration: "shadow")
 
-    testCompile "org.embulk:embulk-api:$embulkVersion"
-    testCompile "org.embulk:embulk-spi:$embulkVersion"
-    testCompile "org.embulk:embulk-junit4:$embulkVersion"
-    testCompile "org.embulk:embulk-core:$embulkVersion"
-    testCompile "org.embulk:embulk-deps:$embulkVersion"
-    testCompile "org.mockito:mockito-core:4.6.1"
+    testImplementation "org.embulk:embulk-api:$embulkVersion"
+    testImplementation "org.embulk:embulk-spi:$embulkVersion"
+    testImplementation "org.embulk:embulk-junit4:$embulkVersion"
+    testImplementation "org.embulk:embulk-core:$embulkVersion"
+    testImplementation "org.embulk:embulk-deps:$embulkVersion"
+    testImplementation "org.mockito:mockito-core:4.6.1"
 }
 
 checkstyle {
