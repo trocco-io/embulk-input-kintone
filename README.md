@@ -16,7 +16,6 @@ e.g. limit, offset are not supported.
 ## Road Map
 - [ ] Guess
 - [ ] field name mapping
-- [ ] handle certification fot authentication
 
 ## Configuration
 
@@ -28,6 +27,8 @@ e.g. limit, offset are not supported.
 - **query**:  Kintone query to retrieve records. If the query is omitted, all records are retrieved. The query syntax follows [official documentation: Query Operators and Functions](https://developer.kintone.io/hc/en-us/articles/360019245194) (string, optional)
 - **basic_auth_username**:  Kintone basic auth username Please see Kintone basic auth [here](https://jp.cybozu.help/general/en/admin/list_security/list_ip_basic/basic_auth.html) (string, optional)
 - **basic_auth_password**:  Kintone basic auth password (string, optional)
+- **client_certificate**: Path to a PKCS#12 client certificate file (string, optional)
+- **client_certificate_password**: Password for the PKCS#12 client certificate (string, optional, required with `client_certificate`)
 - **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (integer, optional)
 - **expand_subtable**: Expand subtabble (boolean, default: `false`)
 - **fields**: If fields is empty, include all available columns (required)
@@ -52,6 +53,21 @@ in:
     - {name: foo, type: string}
     - {name: bar, type: long}
     - {name: baz, type: double}
+```
+
+Client certificate authentication can be enabled with a PKCS#12 certificate:
+
+```yaml
+in:
+  type: kintone
+  domain: example.cybozu.com
+  username: user
+  password: password
+  client_certificate: /path/to/client.p12
+  client_certificate_password: certificate-password
+  app_id: 1
+  fields:
+    - {name: $id, type: long}
 ```
 
 Query example

@@ -17,6 +17,7 @@ import org.embulk.spi.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,9 @@ public class KintoneClient implements AutoCloseable
     @SuppressWarnings("StatementWithEmptyBody")
     public void validateAuth(final PluginTask task) throws ConfigException
     {
+        if (task.getClientCertificate().isPresent() != task.getClientCertificatePassword().isPresent()) {
+            throw new ConfigException("Client certificate and client certificate password must be provided together");
+        }
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             // NOP
         }
@@ -67,6 +71,12 @@ public class KintoneClient implements AutoCloseable
 
         if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
             builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
+        }
+
+        if (task.getClientCertificate().isPresent()) {
+            builder.withClientCertificate(
+                    Paths.get(task.getClientCertificate().get()),
+                    task.getClientCertificatePassword().get());
         }
 
         if (task.getGuestSpaceId().isPresent()) {

@@ -89,6 +89,26 @@ public class TestKintoneClient
     }
 
     @Test
+    public void checkClientErrorLackingCertificatePassword()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate", "/tmp/client.p12");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorLackingCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_password", "password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+    }
+
+    @Test
     public void checkClientWithToken()
     {
         config = loadYamlResource(embulk);
