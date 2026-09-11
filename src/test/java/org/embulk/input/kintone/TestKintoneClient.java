@@ -89,6 +89,26 @@ public class TestKintoneClient
     }
 
     @Test
+    public void checkClientErrorLackingCertificatePassword()
+    {
+        config = loadYamlResource(embulk);
+        config.set("pfx_file", "/tmp/client.pfx");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("PFX file and PFX password must be provided together", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorLackingCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("pfx_password", "password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("PFX file and PFX password must be provided together", e.getMessage());
+    }
+
+    @Test
     public void checkClientWithToken()
     {
         config = loadYamlResource(embulk);

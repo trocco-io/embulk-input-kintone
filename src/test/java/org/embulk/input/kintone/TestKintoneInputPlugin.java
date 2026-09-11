@@ -126,6 +126,8 @@ public class TestKintoneInputPlugin
         assertFalse(task.getGuestSpaceId().isPresent());
         assertFalse(task.getBasicAuthUsername().isPresent());
         assertFalse(task.getBasicAuthPassword().isPresent());
+        assertFalse(task.getPfxFile().isPresent());
+        assertFalse(task.getPfxPassword().isPresent());
         assertFalse(task.getQuery().isPresent());
         assertFalse(task.getExpandSubtable());
         assertNotNull(task.getFields());

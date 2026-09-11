@@ -40,6 +40,14 @@ public interface PluginTask
     @ConfigDefault("null")
     Optional<String> getBasicAuthPassword();
 
+    @Config("pfx_file")
+    @ConfigDefault("null")
+    Optional<String> getPfxFile();
+
+    @Config("pfx_password")
+    @ConfigDefault("null")
+    Optional<String> getPfxPassword();
+
     @Config("query")
     @ConfigDefault("null")
     Optional<String> getQuery();
