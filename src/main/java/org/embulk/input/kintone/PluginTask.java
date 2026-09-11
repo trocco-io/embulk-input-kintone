@@ -40,6 +40,14 @@ public interface PluginTask
     @ConfigDefault("null")
     Optional<String> getBasicAuthPassword();
 
+    @Config("client_certificate")
+    @ConfigDefault("null")
+    Optional<String> getClientCertificate();
+
+    @Config("client_certificate_password")
+    @ConfigDefault("null")
+    Optional<String> getClientCertificatePassword();
+
     @Config("query")
     @ConfigDefault("null")
     Optional<String> getQuery();
