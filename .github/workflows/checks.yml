@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - master
+      - feat/client-certificate # TODO: temporary, revert before merge
     types:
       - opened
       - synchronize
