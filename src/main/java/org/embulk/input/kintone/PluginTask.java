@@ -40,9 +40,9 @@ public interface PluginTask
     @ConfigDefault("null")
     Optional<String> getBasicAuthPassword();
 
-    @Config("client_certificate")
+    @Config("client_certificate_path")
     @ConfigDefault("null")
-    Optional<String> getClientCertificate();
+    Optional<String> getClientCertificatePath();
 
     @Config("client_certificate_password")
     @ConfigDefault("null")

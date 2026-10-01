@@ -45,7 +45,7 @@ public class KintoneClient implements AutoCloseable
     @SuppressWarnings("StatementWithEmptyBody")
     public void validateAuth(final PluginTask task) throws ConfigException
     {
-        if (task.getClientCertificate().isPresent() != task.getClientCertificatePassword().isPresent()) {
+        if (task.getClientCertificatePath().isPresent() != task.getClientCertificatePassword().isPresent()) {
             throw new ConfigException("Client certificate and client certificate password must be provided together");
         }
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
@@ -73,9 +73,9 @@ public class KintoneClient implements AutoCloseable
             builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
         }
 
-        if (task.getClientCertificate().isPresent()) {
+        if (task.getClientCertificatePath().isPresent()) {
             builder.withClientCertificate(
-                    Paths.get(task.getClientCertificate().get()),
+                    Paths.get(task.getClientCertificatePath().get()),
                     task.getClientCertificatePassword().get());
         }
 
