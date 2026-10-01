@@ -32,6 +32,8 @@ public class KintoneClient implements AutoCloseable
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
     private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
+    private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
+            "Client certificate and client certificate password must be provided together";
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -50,7 +52,7 @@ public class KintoneClient implements AutoCloseable
     public void validateAuth(final PluginTask task) throws ConfigException
     {
         if (task.getClientCertificatePath().isPresent() != task.getClientCertificatePassword().isPresent()) {
-            throw new ConfigException("Client certificate and client certificate password must be provided together");
+            throw new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE);
         }
         if (task.getClientCertificatePath().isPresent()) {
             validateClientCertificatePath(task.getClientCertificatePath().get());
@@ -66,15 +68,19 @@ public class KintoneClient implements AutoCloseable
         }
     }
 
-    private static void validateClientCertificatePath(final String path) throws ConfigException
+    private static Path clientCertificatePath(final String path) throws ConfigException
     {
-        final Path certificate;
         try {
-            certificate = Paths.get(path);
+            return Paths.get(path);
         }
         catch (InvalidPathException e) {
             throw new ConfigException(String.format("Invalid client certificate path: %s", path), e);
         }
+    }
+
+    private static void validateClientCertificatePath(final String path) throws ConfigException
+    {
+        final Path certificate = clientCertificatePath(path);
         if (!Files.isRegularFile(certificate) || !Files.isReadable(certificate)) {
             throw new ConfigException(String.format("Client certificate file not found or not readable: %s", path));
         }
@@ -96,8 +102,11 @@ public class KintoneClient implements AutoCloseable
 
         if (task.getClientCertificatePath().isPresent()) {
             final String path = task.getClientCertificatePath().get();
+            final String password = task.getClientCertificatePassword().orElseThrow(() ->
+                    new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE));
+            final Path certificate = clientCertificatePath(path);
             try {
-                builder.withClientCertificate(Paths.get(path), task.getClientCertificatePassword().get());
+                builder.withClientCertificate(certificate, password);
             }
             catch (KintoneRuntimeException e) {
                 throw new ConfigException(String.format(
