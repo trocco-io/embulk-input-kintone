@@ -60,7 +60,7 @@ Client certificate (kintone Secure Access) example:
 ```yaml
 in:
   type: kintone
-  domain: example.cybozu.com
+  domain: example.s.cybozu.com
   username: user
   password: password
   client_certificate_path: /path/to/client.p12
