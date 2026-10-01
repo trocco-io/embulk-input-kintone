@@ -127,7 +127,7 @@ public class TestKintoneClient
     public void checkClientErrorLackingCertificatePassword()
     {
         config = loadYamlResource(embulk);
-        config.set("client_certificate_path", "/tmp/client.p12");
+        config.set("client_certificate_path", clientCertificatePath());
         PluginTask task = configMapper.map(config, PluginTask.class);
         ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
         assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
