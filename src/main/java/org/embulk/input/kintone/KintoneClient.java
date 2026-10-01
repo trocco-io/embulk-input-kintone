@@ -8,6 +8,7 @@ import com.kintone.client.api.record.CreateCursorRequest;
 import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import com.kintone.client.exception.KintoneApiRuntimeException;
+import com.kintone.client.exception.KintoneRuntimeException;
 import com.kintone.client.model.app.field.FieldProperty;
 import com.kintone.client.model.app.field.SubtableFieldProperty;
 import com.kintone.client.model.record.FieldType;
@@ -17,6 +18,9 @@ import org.embulk.spi.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +52,9 @@ public class KintoneClient implements AutoCloseable
         if (task.getClientCertificatePath().isPresent() != task.getClientCertificatePassword().isPresent()) {
             throw new ConfigException("Client certificate and client certificate password must be provided together");
         }
+        if (task.getClientCertificatePath().isPresent()) {
+            validateClientCertificatePath(task.getClientCertificatePath().get());
+        }
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             // NOP
         }
@@ -56,6 +63,20 @@ public class KintoneClient implements AutoCloseable
         }
         else {
             throw new ConfigException("Username and password or token must be provided");
+        }
+    }
+
+    private static void validateClientCertificatePath(final String path) throws ConfigException
+    {
+        final Path certificate;
+        try {
+            certificate = Paths.get(path);
+        }
+        catch (InvalidPathException e) {
+            throw new ConfigException(String.format("Invalid client certificate path: %s", path), e);
+        }
+        if (!Files.isRegularFile(certificate) || !Files.isReadable(certificate)) {
+            throw new ConfigException(String.format("Client certificate file not found or not readable: %s", path));
         }
     }
 
@@ -74,9 +95,15 @@ public class KintoneClient implements AutoCloseable
         }
 
         if (task.getClientCertificatePath().isPresent()) {
-            builder.withClientCertificate(
-                    Paths.get(task.getClientCertificatePath().get()),
-                    task.getClientCertificatePassword().get());
+            final String path = task.getClientCertificatePath().get();
+            try {
+                builder.withClientCertificate(Paths.get(path), task.getClientCertificatePassword().get());
+            }
+            catch (KintoneRuntimeException e) {
+                throw new ConfigException(String.format(
+                        "Failed to load client certificate '%s'. Make sure the file is a valid PKCS#12 (.p12/.pfx) and the password is correct.",
+                        path), e);
+            }
         }
 
         if (task.getGuestSpaceId().isPresent()) {
