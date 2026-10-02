@@ -27,7 +27,7 @@ e.g. limit, offset are not supported.
 - **query**:  Kintone query to retrieve records. If the query is omitted, all records are retrieved. The query syntax follows [official documentation: Query Operators and Functions](https://developer.kintone.io/hc/en-us/articles/360019245194) (string, optional)
 - **basic_auth_username**:  Kintone basic auth username Please see Kintone basic auth [here](https://jp.cybozu.help/general/en/admin/list_security/list_ip_basic/basic_auth.html) (string, optional)
 - **basic_auth_password**:  Kintone basic auth password (string, optional)
-- **client_certificate_path**: Path to a PKCS#12 (.pfx) client certificate file for kintone Secure Access. This is used in addition to username/password or token authentication, not instead of it. If the file does not exist or cannot be loaded, the plugin fails with a ConfigException. (string, optional)
+- **client_certificate_path**: Path to a PKCS#12 (.pfx) client certificate file for kintone Secure Access. This is used in addition to username/password or token authentication, not instead of it. If the file does not exist or cannot be loaded, the plugin fails with a ConfigException. If kintone answers with HTTP 400 "No Cert" (the domain requires a client certificate but none was presented) or rejects the certificate during the TLS handshake, the plugin fails with a ConfigException that names the domain and, when set, the certificate path. (string, optional)
 - **client_certificate_password**: Password for the PKCS#12 client certificate (string, optional, required with `client_certificate_path`)
 - **guest_space_id**: Kintone app belongs to guest space, guest space id is required. (integer, optional)
 - **expand_subtable**: Expand subtabble (boolean, default: `false`)

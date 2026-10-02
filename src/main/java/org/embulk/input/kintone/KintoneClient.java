@@ -18,6 +18,8 @@ import org.embulk.spi.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
+
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -26,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class KintoneClient implements AutoCloseable
 {
@@ -34,6 +38,8 @@ public class KintoneClient implements AutoCloseable
     private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
     private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
             "Client certificate and client certificate password must be provided together";
+    private static final Pattern HTML_TITLE = Pattern.compile("<title>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private PluginTask task;
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -88,7 +94,8 @@ public class KintoneClient implements AutoCloseable
 
     public void connect(final PluginTask task)
     {
-        KintoneClientBuilder builder = KintoneClientBuilder.create(String.format("https://%s", task.getDomain()));
+        this.task = task;
+        KintoneClientBuilder builder = newBuilder(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             builder.authByPassword(task.getUsername().get(), task.getPassword().get());
         }
@@ -124,6 +131,89 @@ public class KintoneClient implements AutoCloseable
         this.appClient = client.app();
     }
 
+    @VisibleForTesting
+    protected KintoneClientBuilder newBuilder(final String baseUrl)
+    {
+        return KintoneClientBuilder.create(baseUrl);
+    }
+
+    // Explains failures that involve the client certificate as configuration problems; anything else is
+    // returned as is.
+    // - kintone Secure Access answers a request without a client certificate with HTTP 400 and an HTML page
+    //   titled "No Cert" (the TLS handshake itself succeeds).
+    // - kintone-java-client wraps I/O failures (including SSLHandshakeException) as
+    //   KintoneRuntimeException("Failed to request", cause).
+    // HTML error pages are also summarized to their <title> so that the page body is kept out of the log.
+    private static RuntimeException withClientCertificateHint(final KintoneRuntimeException e, final PluginTask task)
+    {
+        if (task == null) {
+            return e;
+        }
+        if (e instanceof KintoneApiRuntimeException) {
+            return describeHtmlErrorResponse((KintoneApiRuntimeException) e, task);
+        }
+        if (hasSslCause(e) && task.getClientCertificatePath().isPresent()) {
+            return new ConfigException(String.format(
+                    "TLS handshake with https://%s failed while using client certificate '%s'. Check that the certificate was issued for this domain and is not expired or revoked.",
+                    task.getDomain(), task.getClientCertificatePath().get()), e);
+        }
+        return e;
+    }
+
+    private static RuntimeException describeHtmlErrorResponse(final KintoneApiRuntimeException e, final PluginTask task)
+    {
+        final String title = htmlTitle(e.getContent());
+        if (title == null) {
+            return e;
+        }
+        // Keep the HTML body (which can embed images) out of the message and the stack trace.
+        final KintoneApiRuntimeException summary =
+                new KintoneApiRuntimeException(e.getStatusCode(), e.getHeaders(), String.format("HTML page \"%s\"", title));
+        final String domain = task.getDomain();
+        if (e.getStatusCode() == 400 && "No Cert".equals(title)) {
+            if (task.getClientCertificatePath().isPresent()) {
+                return new ConfigException(String.format(
+                        "kintone at https://%s rejected the request with HTTP 400 \"No Cert\" even though client_certificate_path '%s' is set. Check that the certificate was issued for this domain.",
+                        domain, task.getClientCertificatePath().get()), summary);
+            }
+            return new ConfigException(String.format(
+                    "kintone at https://%s rejected the request with HTTP 400 \"No Cert\". This domain requires client_certificate_path and client_certificate_password.",
+                    domain), summary);
+        }
+        return new RuntimeException(String.format("HTTP error status %d from https://%s: %s", e.getStatusCode(), domain, title), summary);
+    }
+
+    private static String htmlTitle(final String content)
+    {
+        if (content == null || !content.trim().startsWith("<")) {
+            return null;
+        }
+        final Matcher matcher = HTML_TITLE.matcher(content);
+        return matcher.find() ? matcher.group(1).trim() : "";
+    }
+
+    // Routes a kintone API error: HTML error pages are explained or summarized without logging the page body,
+    // JSON API errors are logged and wrapped as before.
+    private RuntimeException apiError(final KintoneApiRuntimeException e)
+    {
+        final RuntimeException hinted = withClientCertificateHint(e, this.task);
+        if (hinted != e) {
+            return hinted;
+        }
+        this.logger.error(e.toString());
+        return new RuntimeException(e);
+    }
+
+    private static boolean hasSslCause(final Throwable e)
+    {
+        for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+            if (cause instanceof SSLException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public GetRecordsByCursorResponseBody getResponse(final PluginTask task, final Schema schema)
     {
         this.createCursor(task, schema);
@@ -131,8 +221,10 @@ public class KintoneClient implements AutoCloseable
             return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
-            this.logger.error(e.toString());
-            throw new RuntimeException(e);
+            throw apiError(e);
+        }
+        catch (KintoneRuntimeException e) {
+            throw withClientCertificateHint(e, this.task);
         }
     }
 
@@ -142,8 +234,10 @@ public class KintoneClient implements AutoCloseable
             return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
-            this.logger.error(e.toString());
-            throw new RuntimeException(e);
+            throw apiError(e);
+        }
+        catch (KintoneRuntimeException e) {
+            throw withClientCertificateHint(e, this.task);
         }
     }
 
@@ -170,8 +264,10 @@ public class KintoneClient implements AutoCloseable
             this.cursorId = cursorResponse.getId();
         }
         catch (KintoneApiRuntimeException e) {
-            this.logger.error(e.toString());
-            throw new RuntimeException(e);
+            throw apiError(e);
+        }
+        catch (KintoneRuntimeException e) {
+            throw withClientCertificateHint(e, this.task);
         }
     }
 
@@ -190,7 +286,7 @@ public class KintoneClient implements AutoCloseable
 
     public Map<String, FieldProperty> getFields(final PluginTask task)
     {
-        Map<String, FieldProperty> fields = this.appClient.getFormFields(task.getAppId());
+        Map<String, FieldProperty> fields = getFormFields(task);
         if (task.getExpandSubtable()) {
             Map<String, FieldProperty> subtableFields = new HashMap<>();
             List<String> subtableFieldCodes = new ArrayList<>();
@@ -212,13 +308,23 @@ public class KintoneClient implements AutoCloseable
     public List<String> getFieldCodes(final PluginTask task, FieldType fieldType)
     {
         ArrayList<String> fieldCodes = new ArrayList<>();
-        Map<String, FieldProperty> fields = this.appClient.getFormFields(task.getAppId());
+        Map<String, FieldProperty> fields = getFormFields(task);
         for (Map.Entry<String, FieldProperty> entry : fields.entrySet()) {
             if (entry.getValue().getType() == fieldType) {
                 fieldCodes.add(entry.getKey());
             }
         }
         return fieldCodes;
+    }
+
+    private Map<String, FieldProperty> getFormFields(final PluginTask task)
+    {
+        try {
+            return this.appClient.getFormFields(task.getAppId());
+        }
+        catch (KintoneRuntimeException e) {
+            throw withClientCertificateHint(e, this.task);
+        }
     }
 
     @Override
