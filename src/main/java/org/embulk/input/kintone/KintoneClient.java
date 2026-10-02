@@ -8,6 +8,7 @@ import com.kintone.client.api.record.CreateCursorRequest;
 import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.api.record.GetRecordsByCursorResponseBody;
 import com.kintone.client.exception.KintoneApiRuntimeException;
+import com.kintone.client.exception.KintoneRuntimeException;
 import com.kintone.client.model.app.field.FieldProperty;
 import com.kintone.client.model.app.field.SubtableFieldProperty;
 import com.kintone.client.model.record.FieldType;
@@ -17,6 +18,10 @@ import org.embulk.spi.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,8 @@ public class KintoneClient implements AutoCloseable
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
     private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
+    private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
+            "Client certificate and client certificate password must be provided together";
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -44,6 +51,12 @@ public class KintoneClient implements AutoCloseable
     @SuppressWarnings("StatementWithEmptyBody")
     public void validateAuth(final PluginTask task) throws ConfigException
     {
+        if (task.getClientCertificatePath().isPresent() != task.getClientCertificatePassword().isPresent()) {
+            throw new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE);
+        }
+        if (task.getClientCertificatePath().isPresent()) {
+            validateClientCertificatePath(task.getClientCertificatePath().get());
+        }
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             // NOP
         }
@@ -52,6 +65,24 @@ public class KintoneClient implements AutoCloseable
         }
         else {
             throw new ConfigException("Username and password or token must be provided");
+        }
+    }
+
+    private static Path clientCertificatePath(final String path) throws ConfigException
+    {
+        try {
+            return Paths.get(path);
+        }
+        catch (InvalidPathException e) {
+            throw new ConfigException(String.format("Invalid client certificate path: %s", path), e);
+        }
+    }
+
+    private static void validateClientCertificatePath(final String path) throws ConfigException
+    {
+        final Path certificate = clientCertificatePath(path);
+        if (!Files.isRegularFile(certificate) || !Files.isReadable(certificate)) {
+            throw new ConfigException(String.format("Client certificate file not found or not readable: %s", path));
         }
     }
 
@@ -67,6 +98,21 @@ public class KintoneClient implements AutoCloseable
 
         if (task.getBasicAuthUsername().isPresent() && task.getBasicAuthPassword().isPresent()) {
             builder.withBasicAuth(task.getBasicAuthUsername().get(), task.getBasicAuthPassword().get());
+        }
+
+        if (task.getClientCertificatePath().isPresent()) {
+            final String path = task.getClientCertificatePath().get();
+            final String password = task.getClientCertificatePassword().orElseThrow(() ->
+                    new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE));
+            final Path certificate = clientCertificatePath(path);
+            try {
+                builder.withClientCertificate(certificate, password);
+            }
+            catch (KintoneRuntimeException e) {
+                throw new ConfigException(String.format(
+                        "Failed to load client certificate '%s'. Make sure the file is a valid PKCS#12 (.pfx) and the password is correct.",
+                        path), e);
+            }
         }
 
         if (task.getGuestSpaceId().isPresent()) {

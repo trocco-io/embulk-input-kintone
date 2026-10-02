@@ -13,14 +13,24 @@ import org.embulk.spi.Schema;
 import org.embulk.test.TestingEmbulk;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -35,9 +45,34 @@ public class TestKintoneClient
     private static final String SUCCESS_MSG = "Exception should be thrown by this";
     private final org.embulk.util.config.ConfigMapper configMapper = KintoneInputPlugin.CONFIG_MAPPER_FACTORY.createConfigMapper();
 
+    private static final String CLIENT_CERTIFICATE_PASSWORD = "password";
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private static ConfigSource loadYamlResource(TestingEmbulk embulk)
     {
         return embulk.loadYamlResource(BASIC_RESOURCE_PATH + "base.yml");
+    }
+
+    // Writes a PKCS#12 keystore protected by CLIENT_CERTIFICATE_PASSWORD into a temporary folder.
+    // It is generated at test time so that no key material is committed to the repository.
+    private String clientCertificatePath()
+    {
+        try {
+            File file = new File(temporaryFolder.getRoot(), "client.pfx");
+            if (!file.exists()) {
+                KeyStore keyStore = KeyStore.getInstance("PKCS12");
+                keyStore.load(null, null);
+                try (OutputStream out = new FileOutputStream(file)) {
+                    keyStore.store(out, CLIENT_CERTIFICATE_PASSWORD.toCharArray());
+                }
+            }
+            return file.getAbsolutePath();
+        }
+        catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Rule
@@ -86,6 +121,115 @@ public class TestKintoneClient
         PluginTask task = configMapper.map(config, PluginTask.class);
         ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
         assertEquals("Username and password or token must be provided", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorLackingCertificatePassword()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+    }
+
+    @Test
+    public void checkConnectErrorLackingCertificatePassword()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = new KintoneClient();
+        ConfigException e = assertThrows(ConfigException.class, () -> client.connect(task));
+        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorInvalidCertificatePath()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", "client\u0000.pfx");
+        config.set("client_certificate_password", "password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Invalid client certificate path: client\u0000.pfx", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorLackingCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_password", "password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+    }
+
+    @Test
+    public void checkClientErrorCertificateFileNotFound()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", "/nonexistent/client.pfx");
+        config.set("client_certificate_password", "password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
+        assertEquals("Client certificate file not found or not readable: /nonexistent/client.pfx", e.getMessage());
+    }
+
+    @Test
+    public void checkClientWithCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        config.set("client_certificate_password", CLIENT_CERTIFICATE_PASSWORD);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        Exception e = assertThrows(Exception.class, ()-> {
+            client.validateAuth(task);
+            throw new Exception(SUCCESS_MSG);
+        });
+        assertEquals(SUCCESS_MSG, e.getMessage());
+    }
+
+    @Test
+    public void checkConnectWithCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        config.set("client_certificate_password", CLIENT_CERTIFICATE_PASSWORD);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = new KintoneClient();
+        Exception e = assertThrows(Exception.class, ()-> {
+            client.connect(task);
+            throw new Exception(SUCCESS_MSG);
+        });
+        assertEquals(SUCCESS_MSG, e.getMessage());
+    }
+
+    @Test
+    public void checkConnectErrorWrongCertificatePassword()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        config.set("client_certificate_password", "wrong-password");
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = new KintoneClient();
+        ConfigException e = assertThrows(ConfigException.class, () -> client.connect(task));
+        assertTrue(e.getMessage().startsWith("Failed to load client certificate '" + clientCertificatePath() + "'."));
+        assertFalse(e.getMessage().contains("wrong-password"));
+    }
+
+    @Test
+    public void checkConnectErrorNotPkcs12() throws IOException
+    {
+        File notPkcs12 = temporaryFolder.newFile("not-a-certificate.pfx");
+        Files.write(notPkcs12.toPath(), "not a PKCS#12 file".getBytes(StandardCharsets.UTF_8));
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", notPkcs12.getAbsolutePath());
+        config.set("client_certificate_password", CLIENT_CERTIFICATE_PASSWORD);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = new KintoneClient();
+        ConfigException e = assertThrows(ConfigException.class, () -> client.connect(task));
+        assertTrue(e.getMessage().startsWith("Failed to load client certificate '" + notPkcs12.getAbsolutePath() + "'."));
     }
 
     @Test
