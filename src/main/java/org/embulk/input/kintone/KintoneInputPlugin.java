@@ -46,6 +46,7 @@ public class KintoneInputPlugin
     {
         final ConfigMapper configMapper = CONFIG_MAPPER_FACTORY.createConfigMapper();
         final PluginTask task = configMapper.map(config, PluginTask.class);
+        task.getClientCertificatePath().ifPresent(path -> logger.info("Using client certificate: {}", path));
 
         Schema schema = task.getFields().toSchema();
         int taskCount = 1;  // number of run() method calls
