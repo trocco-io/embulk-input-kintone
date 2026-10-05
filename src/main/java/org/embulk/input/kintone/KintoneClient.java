@@ -36,8 +36,8 @@ public class KintoneClient implements AutoCloseable
     private final Logger logger = LoggerFactory.getLogger(KintoneClient.class);
     private static final int FETCH_SIZE = 500;
     private static final String CURSOR_ALREADY_EXISTS_ERROR = "Cursor already exists: KintoneClient can only generate one cursor per instance.";
-    private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
-            "Client certificate and client certificate password must be provided together";
+    private static final String CLIENT_CERTIFICATE_PASSWORD_WITHOUT_PATH_MESSAGE =
+            "client_certificate_password requires client_certificate_path";
     private static final Pattern HTML_TITLE = Pattern.compile("<title>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final int HTML_TITLE_MAX_LENGTH = 200;
     private RecordClient recordClient;
@@ -57,8 +57,8 @@ public class KintoneClient implements AutoCloseable
     @SuppressWarnings("StatementWithEmptyBody")
     public void validateAuth(final PluginTask task) throws ConfigException
     {
-        if (task.getClientCertificatePath().isPresent() != task.getClientCertificatePassword().isPresent()) {
-            throw new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE);
+        if (task.getClientCertificatePassword().isPresent() && !task.getClientCertificatePath().isPresent()) {
+            throw new ConfigException(CLIENT_CERTIFICATE_PASSWORD_WITHOUT_PATH_MESSAGE);
         }
         if (task.getClientCertificatePath().isPresent()) {
             validateClientCertificatePath(task.getClientCertificatePath().get());
@@ -108,8 +108,9 @@ public class KintoneClient implements AutoCloseable
 
         if (task.getClientCertificatePath().isPresent()) {
             final String path = task.getClientCertificatePath().get();
-            final String password = task.getClientCertificatePassword().orElseThrow(() ->
-                    new ConfigException(CLIENT_CERTIFICATE_TOGETHER_MESSAGE));
+            // A certificate without a password is configured by omitting client_certificate_password or by setting
+            // it to ""; both are treated the same.
+            final String password = task.getClientCertificatePassword().orElse("");
             final Path certificate = clientCertificatePath(path);
             try {
                 builder.withClientCertificate(certificate, password);

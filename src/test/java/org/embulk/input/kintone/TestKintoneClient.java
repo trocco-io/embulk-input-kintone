@@ -81,13 +81,24 @@ public class TestKintoneClient
     // It is generated at test time so that no key material is committed to the repository.
     private String clientCertificatePath()
     {
+        return clientCertificatePath("client.pfx", CLIENT_CERTIFICATE_PASSWORD);
+    }
+
+    // Same as clientCertificatePath(), but the keystore has an empty password.
+    private String passwordlessClientCertificatePath()
+    {
+        return clientCertificatePath("client-no-password.pfx", "");
+    }
+
+    private String clientCertificatePath(String name, String password)
+    {
         try {
-            File file = new File(temporaryFolder.getRoot(), "client.pfx");
+            File file = new File(temporaryFolder.getRoot(), name);
             if (!file.exists()) {
                 KeyStore keyStore = KeyStore.getInstance("PKCS12");
                 keyStore.load(null, null);
                 try (OutputStream out = new FileOutputStream(file)) {
-                    keyStore.store(out, CLIENT_CERTIFICATE_PASSWORD.toCharArray());
+                    keyStore.store(out, password.toCharArray());
                 }
             }
             return file.getAbsolutePath();
@@ -176,24 +187,55 @@ public class TestKintoneClient
     }
 
     @Test
-    public void checkClientErrorLackingCertificatePassword()
+    public void checkClientWithCertificateWithoutPassword()
     {
         config = loadYamlResource(embulk);
         config.set("client_certificate_path", clientCertificatePath());
         PluginTask task = configMapper.map(config, PluginTask.class);
-        ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
-        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+        Exception e = assertThrows(Exception.class, ()-> {
+            client.validateAuth(task);
+            throw new Exception(SUCCESS_MSG);
+        });
+        assertEquals(SUCCESS_MSG, e.getMessage());
+    }
+
+    // Omitting client_certificate_password and setting it to "" are the same thing.
+    @Test
+    public void checkConnectWithoutCertificatePasswordUsesEmptyPassword()
+    {
+        config = loadYamlResource(embulk);
+        String path = clientCertificatePath();
+        config.set("client_certificate_path", path);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        spyClient().connect(task);
+        verify(builder).withClientCertificate(eq(Paths.get(path)), eq(""));
     }
 
     @Test
-    public void checkConnectErrorLackingCertificatePassword()
+    public void checkConnectWithEmptyCertificatePasswordPassesItToBuilder()
     {
         config = loadYamlResource(embulk);
-        config.set("client_certificate_path", clientCertificatePath());
+        String path = clientCertificatePath();
+        config.set("client_certificate_path", path);
+        config.set("client_certificate_password", "");
         PluginTask task = configMapper.map(config, PluginTask.class);
+        spyClient().connect(task);
+        verify(builder).withClientCertificate(eq(Paths.get(path)), eq(""));
+    }
+
+    @Test
+    public void checkConnectWithPasswordlessCertificate()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", passwordlessClientCertificatePath());
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        // Use the real KintoneClientBuilder: it loads the PKCS#12 before build(), so no network access.
         KintoneClient client = new KintoneClient();
-        ConfigException e = assertThrows(ConfigException.class, () -> client.connect(task));
-        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+        Exception e = assertThrows(Exception.class, ()-> {
+            client.connect(task);
+            throw new Exception(SUCCESS_MSG);
+        });
+        assertEquals(SUCCESS_MSG, e.getMessage());
     }
 
     @Test
@@ -214,7 +256,7 @@ public class TestKintoneClient
         config.set("client_certificate_password", "password");
         PluginTask task = configMapper.map(config, PluginTask.class);
         ConfigException e = assertThrows(ConfigException.class, () -> client.validateAuth(task));
-        assertEquals("Client certificate and client certificate password must be provided together", e.getMessage());
+        assertEquals("client_certificate_password requires client_certificate_path", e.getMessage());
     }
 
     @Test
