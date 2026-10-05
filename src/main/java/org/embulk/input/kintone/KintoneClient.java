@@ -39,6 +39,7 @@ public class KintoneClient implements AutoCloseable
     private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
             "Client certificate and client certificate password must be provided together";
     private static final Pattern HTML_TITLE = Pattern.compile("<title>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final int HTML_TITLE_MAX_LENGTH = 200;
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -186,7 +187,12 @@ public class KintoneClient implements AutoCloseable
             return null;
         }
         final Matcher matcher = HTML_TITLE.matcher(content);
-        return matcher.find() ? matcher.group(1).trim() : "";
+        if (!matcher.find()) {
+            return "";
+        }
+        // The title can span lines and has no length limit; keep the message and the log to one short line.
+        final String title = matcher.group(1).replaceAll("\\s+", " ").trim();
+        return title.length() <= HTML_TITLE_MAX_LENGTH ? title : title.substring(0, HTML_TITLE_MAX_LENGTH) + "...";
     }
 
     // Routes a kintone API error: HTML error pages are explained or summarized without logging the page body,

@@ -381,6 +381,22 @@ public class TestKintoneClient
     }
 
     @Test
+    public void checkLongHtmlTitleIsTruncated()
+    {
+        config = loadYamlResource(embulk);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = spyClient();
+        client.connect(task);
+        String padding = String.join("", Collections.nCopies(300, "x"));
+        doThrow(htmlErrorResponse(503, "<html><head><title>Service\n  Unavailable " + padding + "</title></head><body>huge</body></html>"))
+                .when(appClient).getFormFields(1);
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.getFields(task));
+        String expectedTitle = ("Service Unavailable " + padding).substring(0, 200) + "...";
+        assertEquals("HTTP error status 503 from https://dev.cybozu.com: " + expectedTitle, e.getMessage());
+        assertFalse(e.getMessage().contains("\n"));
+    }
+
+    @Test
     public void checkJsonApiErrorIsUnchanged()
     {
         config = loadYamlResource(embulk);
