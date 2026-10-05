@@ -165,9 +165,7 @@ public class KintoneClient implements AutoCloseable
         if (title == null) {
             return e;
         }
-        // Keep the HTML body (which can embed images) out of the message and the stack trace.
-        final KintoneApiRuntimeException summary =
-                new KintoneApiRuntimeException(e.getStatusCode(), e.getHeaders(), String.format("HTML page \"%s\"", title));
+        final KintoneApiRuntimeException summary = summarizeHtmlErrorResponse(e);
         final String domain = task.getDomain();
         if (e.getStatusCode() == 400 && "No Cert".equals(title)) {
             if (task.getClientCertificatePath().isPresent()) {
@@ -180,6 +178,19 @@ public class KintoneClient implements AutoCloseable
                     domain), summary);
         }
         return new RuntimeException(String.format("HTTP error status %d from https://%s: %s", e.getStatusCode(), domain, title), summary);
+    }
+
+    // Returns a copy of e whose message carries only the HTTP status and the HTML <title>, so that the page body
+    // (which can embed images) is kept out of the message, the stack trace and the log. Returns e itself when
+    // the response is not HTML.
+    @VisibleForTesting
+    static KintoneApiRuntimeException summarizeHtmlErrorResponse(final KintoneApiRuntimeException e)
+    {
+        final String title = htmlTitle(e.getContent());
+        if (title == null) {
+            return e;
+        }
+        return new KintoneApiRuntimeException(e.getStatusCode(), e.getHeaders(), String.format("HTML page \"%s\"", title));
     }
 
     private static String htmlTitle(final String content)
@@ -283,7 +294,7 @@ public class KintoneClient implements AutoCloseable
                 this.cursorId = null;
             }
             catch (KintoneApiRuntimeException e) {
-                this.logger.error(e.toString());
+                this.logger.error(summarizeHtmlErrorResponse(e).toString());
             }
         }
     }

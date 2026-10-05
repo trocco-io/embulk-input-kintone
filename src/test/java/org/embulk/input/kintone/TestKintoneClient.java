@@ -3,6 +3,8 @@ package org.embulk.input.kintone;
 import com.kintone.client.AppClient;
 import com.kintone.client.KintoneClientBuilder;
 import com.kintone.client.RecordClient;
+import com.kintone.client.api.record.CreateCursorRequest;
+import com.kintone.client.api.record.CreateCursorResponseBody;
 import com.kintone.client.exception.KintoneApiRuntimeException;
 import com.kintone.client.exception.KintoneRuntimeException;
 import com.kintone.client.model.app.field.FieldProperty;
@@ -493,6 +495,39 @@ public class TestKintoneClient
         doThrow(failure).when(appClient).getFormFields(1);
         KintoneRuntimeException e = assertThrows(KintoneRuntimeException.class, () -> client.getFields(task));
         assertSame(failure, e);
+    }
+
+    @Test
+    public void checkHtmlErrorResponseSummaryKeepsBodyOut()
+    {
+        KintoneApiRuntimeException summary = KintoneClient.summarizeHtmlErrorResponse(
+                htmlErrorResponse(503, "<html><head><title>Service Unavailable</title></head><body>huge</body></html>"));
+        assertEquals(503, summary.getStatusCode());
+        assertEquals("HTTP error status 503, HTML page \"Service Unavailable\"", summary.getMessage());
+        assertFalse(summary.toString().contains("huge"));
+    }
+
+    @Test
+    public void checkJsonErrorResponseIsNotSummarized()
+    {
+        KintoneApiRuntimeException failure = htmlErrorResponse(404, "{\"code\":\"GAIA_CN01\",\"message\":\"cursor\"}");
+        assertSame(failure, KintoneClient.summarizeHtmlErrorResponse(failure));
+    }
+
+    // deleteCursor() only logs the failure; the HTML body must not reach the log and close() must not throw.
+    @Test
+    public void checkCloseWithHtmlErrorOnDeleteCursorDoesNotThrow()
+    {
+        config = loadYamlResource(embulk);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = spyClient();
+        client.connect(task);
+        when(recordClient.createCursor(any(CreateCursorRequest.class))).thenReturn(new CreateCursorResponseBody("cursor-1", 0L));
+        client.createCursor(task, task.getFields().toSchema());
+        doThrow(htmlErrorResponse(503, "<html><head><title>Service Unavailable</title></head><body>huge</body></html>"))
+                .when(recordClient).deleteCursor("cursor-1");
+        client.close();
+        verify(recordClient).deleteCursor("cursor-1");
     }
 
     @Test
