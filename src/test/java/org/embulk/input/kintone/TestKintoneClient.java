@@ -19,6 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 
 import java.io.File;
@@ -317,7 +318,8 @@ public class TestKintoneClient
         doThrow(sslHandshakeFailure()).when(appClient).getFormFields(1);
         ConfigException e = assertThrows(ConfigException.class, () -> client.getFields(task));
         assertEquals("TLS handshake with https://dev.cybozu.com failed while using client certificate '" + path
-                + "'. Check that the certificate was issued for this domain and is not expired or revoked.", e.getMessage());
+                + "'. Check that the certificate was issued for this domain and is not expired or revoked,"
+                + " or whether another TLS problem (for example a proxy or trust store) is the cause.", e.getMessage());
         assertFalse(e.getMessage().contains(CLIENT_CERTIFICATE_PASSWORD));
     }
 
@@ -399,6 +401,22 @@ public class TestKintoneClient
         KintoneClient client = spyClient();
         client.connect(task);
         KintoneRuntimeException failure = sslHandshakeFailure();
+        doThrow(failure).when(appClient).getFormFields(1);
+        KintoneRuntimeException e = assertThrows(KintoneRuntimeException.class, () -> client.getFields(task));
+        assertSame(failure, e);
+    }
+
+    @Test
+    public void checkNonHandshakeSslErrorIsNotRewritten()
+    {
+        config = loadYamlResource(embulk);
+        config.set("client_certificate_path", clientCertificatePath());
+        config.set("client_certificate_password", CLIENT_CERTIFICATE_PASSWORD);
+        PluginTask task = configMapper.map(config, PluginTask.class);
+        KintoneClient client = spyClient();
+        client.connect(task);
+        // A TLS error after the handshake (for example a reset connection) can be transient and is not a certificate problem.
+        KintoneRuntimeException failure = new KintoneRuntimeException("Failed to request", new SSLException("Connection reset"));
         doThrow(failure).when(appClient).getFormFields(1);
         KintoneRuntimeException e = assertThrows(KintoneRuntimeException.class, () -> client.getFields(task));
         assertSame(failure, e);
