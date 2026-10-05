@@ -95,7 +95,7 @@ public class KintoneInputPlugin
             }
 
             while (cursorResponse.isNext()) {
-                cursorResponse = client.getRecordsByCursor();
+                cursorResponse = client.getRecordsByCursor(task);
                 for (Record record : cursorResponse.getRecords()) {
                     List<Record> records;
                     if (task.getExpandSubtable()) {

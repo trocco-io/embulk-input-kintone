@@ -39,7 +39,6 @@ public class KintoneClient implements AutoCloseable
     private static final String CLIENT_CERTIFICATE_TOGETHER_MESSAGE =
             "Client certificate and client certificate password must be provided together";
     private static final Pattern HTML_TITLE = Pattern.compile("<title>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private PluginTask task;
     private RecordClient recordClient;
     private AppClient appClient;
     private String cursorId;
@@ -94,7 +93,6 @@ public class KintoneClient implements AutoCloseable
 
     public void connect(final PluginTask task)
     {
-        this.task = task;
         KintoneClientBuilder builder = newBuilder(String.format("https://%s", task.getDomain()));
         if (task.getUsername().isPresent() && task.getPassword().isPresent()) {
             builder.authByPassword(task.getUsername().get(), task.getPassword().get());
@@ -146,9 +144,6 @@ public class KintoneClient implements AutoCloseable
     // HTML error pages are also summarized to their <title> so that the page body is kept out of the log.
     private static RuntimeException withClientCertificateHint(final KintoneRuntimeException e, final PluginTask task)
     {
-        if (task == null) {
-            return e;
-        }
         if (e instanceof KintoneApiRuntimeException) {
             return describeHtmlErrorResponse((KintoneApiRuntimeException) e, task);
         }
@@ -194,9 +189,9 @@ public class KintoneClient implements AutoCloseable
 
     // Routes a kintone API error: HTML error pages are explained or summarized without logging the page body,
     // JSON API errors are logged and wrapped as before.
-    private RuntimeException apiError(final KintoneApiRuntimeException e)
+    private RuntimeException apiError(final KintoneApiRuntimeException e, final PluginTask task)
     {
-        final RuntimeException hinted = withClientCertificateHint(e, this.task);
+        final RuntimeException hinted = withClientCertificateHint(e, task);
         if (hinted != e) {
             return hinted;
         }
@@ -221,23 +216,23 @@ public class KintoneClient implements AutoCloseable
             return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
-            throw apiError(e);
+            throw apiError(e, task);
         }
         catch (KintoneRuntimeException e) {
-            throw withClientCertificateHint(e, this.task);
+            throw withClientCertificateHint(e, task);
         }
     }
 
-    public GetRecordsByCursorResponseBody getRecordsByCursor()
+    public GetRecordsByCursorResponseBody getRecordsByCursor(final PluginTask task)
     {
         try {
             return this.recordClient.getRecordsByCursor(this.cursorId);
         }
         catch (KintoneApiRuntimeException e) {
-            throw apiError(e);
+            throw apiError(e, task);
         }
         catch (KintoneRuntimeException e) {
-            throw withClientCertificateHint(e, this.task);
+            throw withClientCertificateHint(e, task);
         }
     }
 
@@ -264,10 +259,10 @@ public class KintoneClient implements AutoCloseable
             this.cursorId = cursorResponse.getId();
         }
         catch (KintoneApiRuntimeException e) {
-            throw apiError(e);
+            throw apiError(e, task);
         }
         catch (KintoneRuntimeException e) {
-            throw withClientCertificateHint(e, this.task);
+            throw withClientCertificateHint(e, task);
         }
     }
 
@@ -323,7 +318,7 @@ public class KintoneClient implements AutoCloseable
             return this.appClient.getFormFields(task.getAppId());
         }
         catch (KintoneRuntimeException e) {
-            throw withClientCertificateHint(e, this.task);
+            throw withClientCertificateHint(e, task);
         }
     }
 
